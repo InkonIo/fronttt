@@ -53,16 +53,20 @@ const AdminPanel = () => { // Изменил имя функции на AdminPan
 
             // Определяем роль текущего пользователя на основе email (для демонстрации)
             // В реальном приложении, лучше получать роль из ответа сервера при логине
-            if (email === 'superadmin@example.com') {
-                setCurrentUserRole('SUPER_ADMIN');
-                localStorage.setItem('userRole', 'SUPER_ADMIN');
-            } else if (email === 'admin@example.com') {
-                setCurrentUserRole('ADMIN');
-                localStorage.setItem('userRole', 'ADMIN');
-            } else {
-                setCurrentUserRole('UNKNOWN'); 
-                localStorage.setItem('userRole', 'UNKNOWN');
+            // Предполагаем, что роль приходит в токене или отдельном поле data.role
+            // Если роль не приходит, можно использовать email для тестовых ролей
+            let roleFromBackend = data.role; // Предположим, что бэкенд возвращает роль
+            if (!roleFromBackend) { // Запасной вариант для демонстрации
+                if (email === 'superadmin@example.com') {
+                    roleFromBackend = 'SUPER_ADMIN';
+                } else if (email === 'admin@example.com') {
+                    roleFromBackend = 'ADMIN';
+                } else {
+                    roleFromBackend = 'UNKNOWN'; 
+                }
             }
+            setCurrentUserRole(roleFromBackend);
+            localStorage.setItem('userRole', roleFromBackend);
 
             setSuccessMessage('Вход выполнен успешно!');
         } catch (err) {
@@ -135,6 +139,12 @@ const AdminPanel = () => { // Изменил имя функции на AdminPan
 
     // Функция для сохранения новой роли (доступно только SUPER_ADMIN)
     const handleSaveRole = async (userId) => {
+        // Проверка на стороне клиента: только SUPER_ADMIN может менять роли
+        if (currentUserRole !== 'SUPER_ADMIN') {
+            setError('У вас нет прав для изменения роли пользователя.');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setSuccessMessage('');

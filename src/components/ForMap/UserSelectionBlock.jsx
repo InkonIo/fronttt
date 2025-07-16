@@ -1,5 +1,5 @@
 // components/ForMap/UserSelectionBlock.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Общие стили для элементов <select>, скопированные из LayerSelectionBlock.jsx
 const commonSelectStyles = {
@@ -37,11 +37,41 @@ export default function UserSelectionBlock({
   selectedUserForAdminView,
   handleUserSelectForAdminView,
   calculatedBottom, // Новая пропса для динамической позиции bottom
+  onUpdateUserRole // ✨ НОВЫЙ ПРОПС: функция для обновления роли пользователя
 }) {
+  // Состояние для новой роли выбранного пользователя
+  const [newRoleForSelectedUser, setNewRoleForSelectedUser] = useState('');
+
+  // Обновляем newRoleForSelectedUser при изменении selectedUserForAdminView
+  useEffect(() => {
+    if (selectedUserForAdminView) {
+      setNewRoleForSelectedUser(selectedUserForAdminView.role);
+    } else {
+      setNewRoleForSelectedUser('');
+    }
+  }, [selectedUserForAdminView]);
+
   // Этот блок будет отображаться только для пользователей с ролью 'ADMIN' ИЛИ 'SUPER_ADMIN'
   if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
     return null; // Не рендерим блок, если пользователь не админ и не супер-админ
   }
+
+  const handleRoleChange = (e) => {
+    setNewRoleForSelectedUser(e.target.value);
+  };
+
+  const handleSaveRoleClick = () => {
+    if (selectedUserForAdminView && newRoleForSelectedUser) {
+      // Проверяем, что SUPER_ADMIN не пытается изменить свою собственную роль через этот блок
+      // (хотя бэкенд тоже должен это обрабатывать)
+      if (userRole === 'SUPER_ADMIN' && selectedUserForAdminView.id === null) { // Если выбран "Все пользователи" и это сам супер-админ
+          // Можно добавить toast или просто проигнорировать
+          console.warn("SUPER_ADMIN cannot change their own role via this block.");
+          return;
+      }
+      onUpdateUserRole(selectedUserForAdminView.id, newRoleForSelectedUser);
+    }
+  };
 
   return (
     <div style={{
@@ -82,6 +112,45 @@ export default function UserSelectionBlock({
           </option>
         ))}
       </select>
+
+      {/* ✨ НОВЫЙ БЛОК: Изменение роли для SUPER_ADMIN */}
+      {userRole === 'SUPER_ADMIN' && selectedUserForAdminView && (
+        <div style={{ marginTop: '15px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <h5 style={{ ...sectionTitleStyles, fontSize: '14px', marginBottom: '5px' }}>
+            Изменить роль для: {selectedUserForAdminView.email}
+          </h5>
+          <select
+            value={newRoleForSelectedUser}
+            onChange={handleRoleChange}
+            style={commonSelectStyles}
+          >
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+            {/* SUPER_ADMIN не может сам себе назначить роль SUPER_ADMIN через этот UI */}
+            {/* Если выбранный пользователь не SUPER_ADMIN, можно предложить и SUPER_ADMIN, но это должно быть ограничено бэкендом */}
+            {selectedUserForAdminView.role !== 'SUPER_ADMIN' && (
+              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+            )}
+          </select>
+          <button
+            onClick={handleSaveRoleClick}
+            style={{
+              marginTop: '10px',
+              width: '100%',
+              padding: '8px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: '#3498db',
+              color: 'white',
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+            }}
+          >
+            Сохранить роль
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -780,6 +780,50 @@ export default function PolygonDrawMap({ handleLogout }) {
     }
   }, [showToast, handleLogout, navigate, selectedUserForAdminView]);
 
+  // ✨ НОВАЯ ФУНКЦИЯ: Обновление роли пользователя
+  const handleUpdateUserRole = useCallback(async (userId, newRole) => {
+    showToast(`Attempting to update user ${userId} role to ${newRole}...`, 'info');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast('Error: Authentication token is missing. Please log in again.', 'error');
+      if (handleLogout) handleLogout();
+      else navigate('/login');
+      return;
+    }
+    try {
+      const response = await fetch(`${BASE_API_URL}/api/v1/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ newRole: newRole }),
+      });
+
+      const responseBody = await parseResponseBody(response);
+      if (!response.ok) {
+        let errorMessage = response.statusText;
+        if (typeof responseBody === 'object' && responseBody !== null && responseBody.message) {
+          errorMessage = responseBody.message;
+        } else if (typeof responseBody === 'string' && responseBody.length > 0) {
+          errorMessage = responseBody;
+        }
+        throw new Error(`Error updating role: ${response.status} - ${errorMessage}`);
+      }
+      showToast(`User ${userId} role successfully updated to ${newRole}!`, 'success');
+      // Обновляем роль в allUsers и selectedUserForAdminView
+      setAllUsers(prevUsers => prevUsers.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      ));
+      if (selectedUserForAdminView && selectedUserForAdminView.id === userId) {
+        setSelectedUserForAdminView(prev => ({ ...prev, role: newRole }));
+      }
+    } catch (error) {
+      showToast(`Failed to update user role: ${error.message}`, 'error');
+      console.error('Error updating user role:', error);
+    }
+  }, [showToast, handleLogout, navigate, selectedUserForAdminView]);
+
 
   // useEffect для инициализации роли пользователя и данных
   useEffect(() => {
@@ -1063,6 +1107,7 @@ export default function PolygonDrawMap({ handleLogout }) {
           selectedUserForAdminView={selectedUserForAdminView}
           handleUserSelectForAdminView={handleUserSelectForAdminView}
           calculatedBottom={userBlockCalculatedBottom}
+          onUpdateUserRole={handleUpdateUserRole}
         />
       )}
 
