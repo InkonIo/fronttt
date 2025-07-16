@@ -12,7 +12,7 @@ import * as L from 'leaflet';
 import './Map.css';
 import { jwtDecode } from 'jwt-decode'; // Импортируем jwtDecode
 
-const BASE_API_URL = 'http://localhost:8080';
+const BASE_API_URL = 'https://back-production-b3f2.up.railway.app';
 
 async function parseResponseBody(response) {
   const contentType = response.headers.get("content-type");

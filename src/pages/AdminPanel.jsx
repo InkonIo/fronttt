@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import './AdminPanel.css'; 
 
 // Базовый URL вашего бэкенда
-const API_BASE_URL = 'http://localhost:8080/api/v1'; // Измените, если ваш бэкенд на другом домене/порту
+const API_BASE_URL = 'https://back-production-b3f2.up.railway.app/api/v1'; // Измените, если ваш бэкенд на другом домене/порту
 
 // Компонент AdminPanel
 const AdminPanel = () => { // Изменил имя функции на AdminPanel, чтобы соответствовать вашему экспорту

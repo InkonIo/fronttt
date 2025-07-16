@@ -90,7 +90,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/register', {
+      const response = await fetch('https://back-production-b3f2.up.railway.app/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: login, email, password })
@@ -122,7 +122,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
+      const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -167,7 +167,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
         return;
       }
       try {
-        const response = await fetch("http://localhost:8080/api/v1/recovery/verify", {
+        const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, code: recoveryCode })
@@ -196,7 +196,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
       }
 
       try {
-        const response = await fetch("http://localhost:8080/api/v1/recovery/reset", {
+        const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/reset", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, newPassword })
@@ -231,7 +231,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/recovery/request", {
+      const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })

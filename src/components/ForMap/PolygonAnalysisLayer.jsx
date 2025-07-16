@@ -7,7 +7,7 @@ import L from 'leaflet';
 // Он должен быть ТОЛЬКО корнем вашего домена/приложения, без '/api' или '/polygons'.
 // Например: 'https://localhost:8080' для локальной разработки, или
 // 'back-production-b3f2.up.railway.app' для вашего развернутого бэкенда.
-const BASE_API_URL = 'http://localhost:8080'; // Обновленный URL
+const BASE_API_URL = 'https://back-production-b3f2.up.railway.app'; // Обновленный URL
 
 export default function PolygonAnalysisLayer({
   map, // Теперь принимаем map как пропс

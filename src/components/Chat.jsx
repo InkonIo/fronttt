@@ -6,7 +6,7 @@ import './Chat.css';
 const MAX_MESSAGES_IN_HISTORY = 20; // Можно настроить это значение
 
 // Новый базовый URL для вашего развернутого бэкенда
-const BASE_API_URL = 'http://localhost:8080';
+const BASE_API_URL = 'https://back-production-b3f2.up.railway.app';
 
 export default function ChatPage() {
   const [message, setMessage] = useState("");
