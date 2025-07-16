@@ -1,0 +1,123 @@
+/* General Styles */
+* {
+  margin: 0;
+  padding-top: 0px;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Main Container */
+.main-container {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  padding-top: 30px
+}
+
+/* Background */
+.background {
+  position: absolute;
+  inset: 0;
+  background-image: url('https://get.wallhere.com/photo/sunlight-leaves-nature-photography-green-jungle-rainforest-leaf-flower-plant-flora-tropics-botany-macro-photography-plant-stem-162861.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Animated Bubbles */
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: float 7s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+}
+
+/* Left Content */
+.content-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 3rem;
+  position: relative;
+  z-index: 10;
+}
+
+.content-wrapper {
+  max-width: 600px;
+}
+
+.main-title {
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1.5rem;
+  font-family: 'Georgia', serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.1;
+}
+
+.main-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-weight: 300;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-title {
+    font-size: 3.5rem;
+  }
+
+  .content-left {
+    padding: 0 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+  }
+
+  .content-left {
+    min-height: 60vh;
+    padding: 2rem 1rem;
+  }
+
+  .main-title {
+    font-size: 2.5rem;
+  }
+
+  .main-subtitle {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,32 @@
+/* components/ForMap/AppLayout.css */
+
+/* Импорт шрифтов Playfair Display и Inter */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Предотвращает прокрутку body */
+}
+
+.app-layout-container {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f9fa; /* Фон для контейнера AppLayout */
+  display: flex; /* Чтобы дети (PolygonDrawMap) могли быть расположены как Flex */
+}
+
+.app-layout-content {
+  height: 100%;
+  width: 100%;
+  overflow: auto; /* Позволяет контенту прокручиваться */
+  display: flex; /* PolygonDrawMap (а внутри него карта и сайдбар) будут Flex */
+  flex-direction: row; /* Они будут расположены горизонтально */
+}
+
+/* Все остальные стили, касающиеся top-bar, main-sidebar, burger-menu-icon,
+   profile-header-logo, profile-header-nav и menu-item, должны быть удалены из этого файла.
+   Они теперь будут находиться в MapSidebar.css */

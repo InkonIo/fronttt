@@ -1,0 +1,273 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #1a1a1a; /* Основной фон, который будет просвечивать */
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  /* Фон, взятый из MapSidebar, с эффектом "жидкого стекла" */
+  background: linear-gradient(145deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%) !important; /* Добавлен !important для принудительного применения */
+  backdrop-filter: blur(25px) saturate(150%); /* Умеренное размытие и насыщенность */
+  -webkit-backdrop-filter: blur(25px) saturate(150%); /* Для совместимости с Safari */
+  border-bottom: 1px solid rgba(51, 51, 51, 0.6); /* Темная граница снизу, как у сайдбара */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Мягкая тень */
+
+  font-family: 'Inter', sans-serif;
+  height: 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  position: relative;
+  z-index: 2;
+}
+
+.profile-header-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #FF8C42;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(255, 140, 66, 0.3);
+}
+
+.profile-header-nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: transparent;
+}
+
+.profile-header-nav-link {
+  color: rgba(255, 255, 255, 0.85); /* Цвет текста для темной темы */
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 13px;
+  padding: 0px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.profile-header-nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #FF8C42, #FF6B1A);
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+
+.profile-header-nav-link:hover {
+  color: #FF8C42;
+}
+
+.profile-header-nav-link:hover::before,
+.profile-header-nav-link.active::before {
+  width: 100%;
+}
+
+.profile-header-nav-link.active {
+  color: #FF8C42;
+  text-shadow: 0 0 10px rgba(255, 140, 66, 0.4);
+}
+
+.profile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.profile-header-button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-header-button:hover {
+  color: #FF8C42;
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(255, 140, 66, 0.4));
+}
+
+/* Настройки */
+.settings-container {
+  position: relative;
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 100;
+}
+
+.settings-dropdown.show {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-dropdown button {
+  padding: 10px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+
+.settings-dropdown button:hover {
+  background: #f0f0f0;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 1024px) {
+  .profile-header {
+    padding: 12px 25px;
+  }
+
+  .profile-header-left {
+    gap: 20px;
+  }
+
+  .profile-header-nav {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    padding: 10px 20px;
+    height: 45px;
+  }
+
+  .profile-header-left {
+    gap: 15px;
+  }
+
+  .profile-header-nav {
+    gap: 12px;
+  }
+
+  .profile-header-nav-link {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+
+  .profile-header-button {
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .profile-header-logo {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    height: auto;
+    padding: 12px 20px;
+  }
+
+  .profile-header-left,
+  .profile-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .profile-header-nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .profile-header-nav-link {
+    font-size: 11px;
+    padding: 4px 0;
+  }
+}
+
+/* Адаптация для светлой темы */
+@media (prefers-color-scheme: light) {
+  .profile-header {
+    /* Для светлой темы также используем темный градиент, чтобы сохранить консистентность */
+    background: linear-gradient(145deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%) !important;
+    backdrop-filter: blur(25px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.6) !important; /* Темная граница */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  .profile-header-nav-link {
+    color: rgba(255, 255, 255, 0.85); /* Цвет текста для темной темы */
+  }
+  .profile-header-nav-link:hover {
+    color: #FF8C42; /* Акцентный цвет остается */
+  }
+  .profile-header-nav-link.active {
+    color: #FF8C42;
+    text-shadow: 0 0 10px rgba(255, 140, 66, 0.4);
+  }
+  .profile-header-button {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+
+/* Анимация */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

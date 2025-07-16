@@ -1,0 +1,535 @@
+/* Chat.css - Стили для компонента чата */
+
+/* Основной контейнер чата */
+.chat-container {
+  display: flex;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Добавлено для предотвращения выделения текста при глобальном перемещении мыши */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Боковая панель */
+.chat-sidebar {
+  width: 220px;
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Изменено на flex-start, чтобы кнопки полигонов были сверху */
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100vh;
+  overflow-y: auto;
+  transition: all 0.4s ease;
+  position: relative; /* Для позиционирования кнопки очистки и ползунка */
+  padding-top: 80px; /* Добавлен отступ сверху, чтобы учесть навигационную шапку */
+}
+
+/* Стили для ползунка изменения размера */
+.chat-sidebar-resizer {
+  width: 8px; /* Ширина ползунка */
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: ew-resize; /* Курсор для горизонтального изменения размера */
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 20; /* Чтобы был поверх всего */
+  transition: background-color 0.2s ease;
+}
+
+
+.chat-sidebar-resizer:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Заголовок боковой панели */
+.sidebar-title {
+  font-family: 'Georgia', serif;
+  font-weight: 300;
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 25px;
+  text-align: center;
+  margin-top: -40px;
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Контейнер кнопок полигонов */
+.polygon-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 0 10px;
+  margin-bottom: auto; /* Отталкивает кнопку очистки вниз */
+}
+
+/* Стили для кнопок полигонов */
+.polygon-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.polygon-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.polygon-button.selected {
+  background-color: #4CAF50; /* Зеленый цвет для выбранного полигона */
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.polygon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Сообщение, если нет полигонов */
+.no-polygons-message {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  padding: 10px;
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Кнопка очистки истории */
+.clear-history-button {
+  background-color: #f44336; /* Красный цвет */
+  color: #fff;
+  border: 1px solid #d32f2f; /* Более темная красная рамка */
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+  width: calc(100% - 20px); /* Ширина с учетом паддинга сайдбара */
+  margin-top: 20px; /* Отступ сверху */
+  margin-bottom: 10px; /* Отступ снизу */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.clear-history-button:hover {
+  background-color: #d32f2f; /* Более темный красный при наведении */
+  transform: translateY(-2px);
+  border-color: #b71c1c; /* Еще более темный красный */
+}
+
+.clear-history-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #ff7961; /* Светло-красный для отключенного состояния */
+  border-color: #e57373;
+}
+
+/* Основная область чата */
+.chat-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a; /* Темный фон для основной области */
+  position: relative;
+  overflow: hidden; /* Чтобы скрыть скроллбар, если сообщения не помещаются */
+  padding-bottom: 70px; /* Отступ для input-area */
+}
+
+/* Интро сообщение */
+.chat-intro {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none; /* Чтобы не блокировать клики */
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.chat-intro.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chat-intro h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.chat-intro p {
+  font-size: 18px;
+}
+
+.login-prompt {
+    font-size: 16px;
+    color: #ff9800; /* Оранжевый цвет для предупреждения */
+    margin-top: 15px;
+}
+
+/* Область сообщений */
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.messages::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera*/
+}
+
+/* Стили для отдельных сообщений */
+.message {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  font-size: 16px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  animation: fadeInUp 0.3s ease-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  user-select: text; /* Разрешить выделение текста в сообщениях */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.message.user {
+  background-color: #007bff; /* Синий для пользователя */
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+}
+
+.message.bot {
+  background-color: #333; /* Темно-серый для бота */
+  color: #fff;
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+}
+
+/* Область ввода */
+.input-area {
+  display: flex;
+  padding: 15px;
+  background-color: #222;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.input-area input {
+  flex-grow: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 25px;
+  background-color: #444;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+  user-select: text; /* Разрешить выделение текста в поле ввода */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.input-area input:focus {
+  background-color: #555;
+}
+
+.input-area input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input-area input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.send-button {
+  background-color: #4CAF50; /* Зеленый */
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.send-button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #666;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .chat-container {
+    flex-direction: column;
+  }
+  
+  .chat-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 15px;
+    justify-content: flex-start;
+  }  
+  .sidebar-title {
+    font-size: 14px;
+  }
+  
+  .polygon-buttons-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .polygon-button {
+    width: auto;
+    min-width: 50px;
+    height: 40px;
+    font-size: 14px;
+    flex: 1;
+  }
+  
+  .chat-intro h2 {
+    font-size: 24px;
+  }
+  
+  .messages {
+    padding-top: 20px;
+  }
+  
+  .message {
+    max-width: 85%;
+    font-size: 14px;
+  }
+
+  .input-area {
+    padding: 10px;
+  }
+
+  .input-area input {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .clear-history-button {
+    width: calc(100% - 20px); /* Учитываем паддинг */
+    margin: 15px 10px 10px 10px; /* Отступы для мобильных */
+  }
+}
+
+/* Анимация загрузки "ИИ пишет..." */
+.typing-indicator {
+  display: inline-block;
+  position: relative;
+  width: 30px;
+  height: 10px;
+}
+
+.typing-indicator span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  left: 0;
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  left: 11px;
+  animation-delay: -0.16s;
+}
+
+.typing-indicator span:nth-child(3) {
+  left: 22px;
+  animation-delay: 0s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Стили для модального окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2a2a2a;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  color: #fff;
+  animation: scaleIn 0.3s ease-out;
+  user-select: none; /* Предотвратить выделение текста */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  font-size: 24px;
+  color: #4CAF50;
+  margin-bottom: 20px;
+}
+
+.modal-content p {
+  font-size: 16px;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-button.confirm-button {
+  background-color: #4CAF50; /* Зеленый */
+  color: #fff;
+}
+
+.modal-button.confirm-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+}
+
+.modal-button.cancel-button {
+  background-color: #f44336; /* Красный */
+  color: #fff;
+}
+
+.modal-button.cancel-button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
