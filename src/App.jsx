@@ -12,6 +12,7 @@ import PolygonDrawMap from './components/ForMap/PolygonDrawMap';
 import AppLayout from './components/ForMap/AppLayout';
 import AdminPanel from './pages/AdminPanel';
 
+
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);

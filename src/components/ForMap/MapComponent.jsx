@@ -9,7 +9,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 import DrawingHandler from './DrawingHandler';
 import PolygonAndMarkerLayer from './PolygonAndMarkerLayer';
-import PolygonAnalysisLayer from './PolygonAnalysisLayer'; // <<<<<<<<<<<< ИМПОРТИРУЕМ PolygonAnalysisLayer
+import PolygonAnalysisLayer from './PolygonAnalysisLayer';
+import WeatherDisplay from './WeatherDisplay'; 
 
 // Исправляем иконки по умолчанию для Leaflet Draw
 L.Icon.Default.mergeOptions({
@@ -17,6 +18,17 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
+
+// Компонент, который получает экземпляр карты и передает его обратно через пропс
+function MapEventsHandler({ onMapReady }) {
+  const map = useMap();
+  useEffect(() => {
+    if (map) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
+  return null;
+}
 
 export default function MapComponent({
   polygons,
@@ -35,7 +47,7 @@ export default function MapComponent({
   analysisDateRange, // Массив из двух объектов Date: [startDate, endDate]
   activeBaseMapType,
   activeAnalysisType, // Текущий выбранный тип анализа (например, 'NDVI')
-  // onMapReady // <<<<<<<<<<<< ЭТОТ ПРОПС БОЛЬШЕ НЕ НУЖЕН ЗДЕСЬ, ТАК КАК PolygonAnalysisLayer БУДЕТ ВНУТРИ
+  onMapReady // Пропс для получения экземпляра карты
 }) {
   const mapRef = useRef();
   const [mapInstance, setMapInstance] = useState(null);
@@ -47,21 +59,6 @@ export default function MapComponent({
       mapRef.current.flyTo(center, zoom);
     }
   }, []);
-
-  // Компонент для обработки событий карты и получения экземпляра карты
-  function MapEventsHandler() {
-    const map = useMap();
-    useEffect(() => {
-      if (map) {
-        mapRef.current = map;
-        setMapInstance(map);
-        // if (onMapReady) { // Вызываем коллбэк, когда карта готова
-        //   onMapReady(map); // Передаем экземпляр карты
-        // }
-      }
-    }, [map, setMapInstance]); // onMapReady удален из зависимостей
-    return null;
-  }
 
   // Функция для расчета площади полигона
   const calculateArea = useCallback((coordinates) => {
@@ -191,37 +188,40 @@ export default function MapComponent({
       return selectedPolygon.getBounds();
     }
 
-    // Если selectedPolygon - это GeoJSON-подобный объект с массивом координат
-    // Предполагаем, что coordinates - это массив массивов [lat, lng]
+    let flatCoordinates = [];
+
+    // --- NEW: Handle direct 'coordinates' array ---
     if (selectedPolygon.coordinates && Array.isArray(selectedPolygon.coordinates) && selectedPolygon.coordinates.length > 0) {
-      let flatCoordinates = [];
-      // Проверяем глубину вложенности координат
-      // Если это [[[lat, lng], [lat, lng], ...]] (GeoJSON Polygon)
-      if (Array.isArray(selectedPolygon.coordinates[0]) && Array.isArray(selectedPolygon.coordinates[0][0])) {
-        // Предполагаем, что это GeoJSON Polygon, где координаты [lng, lat]
-        // Преобразуем в [lat, lng]
-        flatCoordinates = selectedPolygon.coordinates[0].map(ring => 
-          ring.map(coord => [coord[1], coord[0]]) // Меняем местами [lng, lat] на [lat, lng]
-        ).flat(); // Сплющиваем, если есть внутренние кольца
-      } else if (Array.isArray(selectedPolygon.coordinates[0]) && typeof selectedPolygon.coordinates[0][0] === 'number') {
-        // Если это просто [[lat, lng], [lat, lng], ...]
+        // Assume it's an array of [lat, lng] pairs directly
         flatCoordinates = selectedPolygon.coordinates;
+    } 
+    // --- Existing: Handle GeoJSON 'geometry.coordinates' ---
+    else if (selectedPolygon.geometry && selectedPolygon.geometry.coordinates && Array.isArray(selectedPolygon.geometry.coordinates) && selectedPolygon.geometry.coordinates.length > 0) {
+      // Check depth for GeoJSON Polygon format: [[[lng, lat], ...]]
+      if (Array.isArray(selectedPolygon.geometry.coordinates[0]) && Array.isArray(selectedPolygon.geometry.coordinates[0][0])) {
+        // GeoJSON Polygon, coordinates are [lng, lat], convert to [lat, lng]
+        flatCoordinates = selectedPolygon.geometry.coordinates[0].map(ring => 
+          ring.map(coord => [coord[1], coord[0]]) // Swap [lng, lat] to [lat, lng]
+        ).flat();
+      } else if (Array.isArray(selectedPolygon.geometry.coordinates[0]) && typeof selectedPolygon.geometry.coordinates[0][0] === 'number') {
+        // Simple array of [lat, lng] pairs
+        flatCoordinates = selectedPolygon.geometry.coordinates;
       } else {
-        console.warn("getPolygonBounds: Unexpected coordinates structure in selectedPolygon.", selectedPolygon.coordinates);
+        console.warn("getPolygonBounds: Unexpected coordinates structure in selectedPolygon.geometry.coordinates.", selectedPolygon.geometry.coordinates);
         return undefined;
       }
-      
-      // Отфильтровываем некорректные координаты и преобразуем в объекты L.LatLng
-      const latLngs = flatCoordinates.filter(coord => 
-        Array.isArray(coord) && coord.length === 2 && typeof coord[0] === 'number' && typeof coord[1] === 'number'
-      ).map(coord => L.latLng(coord[0], coord[1]));
-      
-      // Создаем L.LatLngBounds из массива L.LatLng
-      if (latLngs.length > 0) {
-        return L.latLngBounds(latLngs);
-      } else {
-        console.warn("getPolygonBounds: No valid LatLngs derived from coordinates.");
-      }
+    }
+    
+    // Filter out invalid coordinates and convert to L.LatLng objects
+    const latLngs = flatCoordinates.filter(coord => 
+      Array.isArray(coord) && coord.length === 2 && typeof coord[0] === 'number' && typeof coord[1] === 'number'
+    ).map(coord => L.latLng(coord[0], coord[1]));
+    
+    // Create L.LatLngBounds from the array of L.LatLng
+    if (latLngs.length > 0) {
+      return L.latLngBounds(latLngs);
+    } else {
+      console.warn("getPolygonBounds: No valid LatLngs derived from coordinates.");
     }
     
     console.warn("getPolygonBounds: Could not derive bounds from selectedPolygon. Check its structure.", selectedPolygon);
@@ -243,11 +243,11 @@ export default function MapComponent({
           mapRef.current = mapInstance;
           setMapInstance(mapInstance);
           setCurrentZoom(mapInstance.getZoom());
-          // onMapReady больше не вызывается здесь, так как PolygonAnalysisLayer будет внутри
+          onMapReady(mapInstance); // Вызываем коллбэк, когда карта готова
         }
       }}
     >
-      <MapEventsHandler />
+      <MapEventsHandler onMapReady={onMapReady} />
 
       {/* Условное отображение базового слоя OpenStreetMap */}
       {activeBaseMapType === 'openstreetmap' && (
@@ -286,16 +286,25 @@ export default function MapComponent({
         </>
       )}
 
+      {/* Условное отображение высококачественного спутникового слоя ESRI World Imagery */}
+      {activeBaseMapType === 'esri_imagery' && (
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          maxZoom={19}
+          zIndex={1} // Базовый слой
+        />
+      )}
+
       {/* Условное отображение аналитического WMS-слоя теперь находится внутри MapComponent */}
       {activeAnalysisType && activeAnalysisType !== 'none' && selectedPolygon && analysisLayerName && analyticalLayerBounds && analysisDateRange && analysisDateRange.length === 2 && (
         <PolygonAnalysisLayer
-          map={mapInstance} // Передаем mapInstance, хотя PolygonAnalysisLayer теперь может использовать useMap()
-          selectedPolygonData={selectedPolygon}
-          activeAnalysisType={activeAnalysisType}
-          analysisDateRange={analysisDateRange}
-          onLoadingChange={onLoadingChange} // Передаем коллбэки дальше
-          onError={onError} // Передаем коллбэки дальше
-        />
+      selectedPolygonData={selectedPolygon}
+      activeAnalysisType={activeAnalysisType}
+      analysisDateRange={analysisDateRange}
+      onLoadingChange={onLoadingChange}
+      onError={onError}
+    />
       )}
 
       <PolygonAndMarkerLayer
@@ -336,6 +345,14 @@ export default function MapComponent({
           />
         </FeatureGroup>
       )}
+
+      {/* Добавляем компонент WeatherDisplay */}
+      <WeatherDisplay
+        mapCenter={mapInstance ? mapInstance.getCenter() : [43.2567, 76.9286]} // Передаем текущий центр карты
+        zoom={mapInstance ? mapInstance.getZoom() : 13} // Передаем текущий зум карты
+        selectedPolygonBounds={analyticalLayerBounds} // Передаем границы выбранного полигона
+        activeAnalysisType={activeAnalysisType} // Передаем активный тип анализа
+      />
     </MapContainer>
   );
 }

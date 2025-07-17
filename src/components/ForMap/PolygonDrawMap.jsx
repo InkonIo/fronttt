@@ -1077,18 +1077,6 @@ export default function PolygonDrawMap({ handleLogout }) {
         />
       )}
 
-      {/* PolygonAnalysisLayer теперь будет получать все необходимые пропсы, включая map */}
-      {finalSelectedPolygonData && activeAnalysisType && activeAnalysisType !== 'none' && mapInstance && ( 
-        <PolygonAnalysisLayer
-          map={mapInstance}
-          selectedPolygonData={finalSelectedPolygonData}
-          activeAnalysisType={activeAnalysisType}
-          analysisDateRange={analysisDateRange}
-          onLoadingChange={handleAnalysisLoadingChange}
-          onError={handleAnalysisError}
-        />
-      )}
-
       {isAnalysisLoading && (
         <div style={{
           position: 'absolute', bottom: '35px', left: '50%', transform: 'translateX(-50%)',
@@ -1115,7 +1103,6 @@ export default function PolygonDrawMap({ handleLogout }) {
         selectedPolygonData={finalSelectedPolygonData}
         activeBaseMapType={activeBaseMapType}
         onSelectBaseMap={setActiveBaseMapType}
-        activeAnalysisType={activeAnalysisType}
         onSelectAnalysisForPolygon={onSelectAnalysisForPolygon}
         setBlockHeight={setLayerBlockHeight}
       />

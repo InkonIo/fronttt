@@ -1,0 +1,305 @@
+/* components/ForMap/WeatherDisplay.css */
+
+.weather-widget-container {
+  position: absolute;
+  bottom: 35px; /* Отступ снизу (чтобы не перекрывать блок загрузки анализа) */
+  right: 10px; /* Отступ справа */
+  background-color: rgba(26, 26, 26, 0.9); /* Темный фон с прозрачностью */
+  color: #f0f0f0; /* Светлый текст */
+  padding: 15px;
+  border-radius: 10px; /* Скругленные углы */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Тень */
+  z-index: 999; /* Поверх других элементов карты */
+  min-width: 240px; /* Уменьшаем минимальную ширину для компактности */
+  max-width: 365px; /* Уменьшаем максимальную ширину для компактности */
+  font-family: 'Inter', sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Тонкая светлая рамка */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Анимация появления/исчезновения */
+}
+
+.weather-error-state {
+  background-color: rgba(255, 0, 0, 0.7); /* Красный фон для ошибок */
+}
+
+.weather-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weather-title {
+  margin: 0;
+  font-size: 18px;
+  color: #4CAF50; /* Зеленый цвет для заголовка */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-icon-large {
+  font-size: 24px;
+}
+
+.weather-date {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.weather-temp-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Стили для эмодзи-иконок */
+.weather-main-emoji {
+  font-size: 60px; /* Размер эмодзи для основной погоды */
+  line-height: 1;
+}
+
+.weather-description-feels-like {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-basis: 50%; /* Даем этому блоку больше места */
+}
+
+.weather-description {
+  font-size: 14px; /* Уменьшаем размер шрифта */
+  margin: 0 0 5px 0;
+  color: #f0f0f0;
+  word-break: break-word; /* Перенос слов */
+  overflow-wrap: break-word; /* Перенос длинных слов */
+}
+
+.weather-feels-like {
+  font-size: 13px; /* Уменьшаем размер шрифта */
+  color: #aaa;
+  margin: 0;
+}
+
+.weather-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.weather-detail-item {
+  background-color: rgba(51, 51, 51, 0.7); /* #333 с прозрачностью */
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.weather-detail-icon {
+  font-size: 20px; /* Размер иконок */
+  color: #4CAF50; /* Зеленый цвет для иконок деталей */
+}
+
+.weather-detail-value {
+  margin: 0;
+  font-weight: bold;
+}
+
+.weather-detail-label {
+  margin: 0;
+  font-size: 12px;
+  color: #ccc;
+}
+
+/* Навигация по дням */
+.weather-daily-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weather-nav-button {
+  background-color: rgba(51, 51, 51, 0.7);
+  color: #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 50%; /* Круглые кнопки */
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  width: 40px; /* Фиксированный размер */
+  height: 40px; /* Фиксированный размер */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Не сжимать кнопки */
+}
+
+.weather-nav-button:hover {
+  background-color: rgba(70, 70, 70, 0.8);
+}
+
+.weather-nav-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.weather-daily-card {
+  flex-shrink: 0;
+  width: 65%; /* Карточка занимает всю доступную ширину между кнопками */
+  background-color: rgba(51, 51, 51, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  /* Анимации */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Анимации для карточек дней */
+.slide-in-left {
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInLeft 0.3s forwards;
+}
+
+.slide-out-left {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideOutLeft 0.3s forwards;
+}
+
+.slide-in-right {
+  opacity: 0;
+  transform: translateX(20px);
+  animation: slideInRight 0.3s forwards;
+}
+
+.slide-out-right {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideOutRight 0.3s forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.weather-daily-card-date {
+  font-size: 12px;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+/* Стили для эмодзи-иконок в ежедневных карточках */
+.weather-daily-card-emoji {
+  font-size: 40px; /* Размер эмодзи для ежедневных карточек */
+  line-height: 1;
+  object-fit: contain; /* Сохраняем, хотя для эмодзи не так критично */
+}
+
+.weather-daily-card-temp {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.weather-daily-card-conditions {
+  font-size: 11px;
+  color: #aaa;
+  margin: 0;
+}
+
+/* Стили для кнопки переключения видимости виджета */
+.toggle-weather-button {
+  position: absolute;
+  top: 10px; /* Позиционируем вверху справа */
+  right: 10px;
+  background-color: rgba(51, 51, 51, 0.7);
+  color: #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px; /* Размер иконки */
+  width: 45px; /* Фиксированный размер */
+  height: 45px; /* Фиксированный размер */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Убедимся, что она поверх виджета */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.toggle-weather-button:hover {
+  background-color: rgba(70, 70, 70, 0.8);
+  transform: scale(1.05);
+}
+
+/* Стили для иконки внутри кнопки переключения */
+.weather-toggle-icon {
+  font-size: 24px; /* Размер эмодзи внутри кнопки */
+  line-height: 1;
+}

@@ -5,6 +5,7 @@ import React, { useRef, useEffect } from 'react';
 const baseMapOptions = [
   { value: 'openstreetmap', label: 'Стандартный (OpenStreetMap)' },
   { value: 'sentinel', label: 'Натуральный цвет (Sentinel-Hub)' },
+  { value: 'esri_imagery', label: 'Спутник (ESRI World Imagery)' }, // Добавляем опцию для ESRI World Imagery
   { value: 'none', label: 'Выкл. базовый слой' }, // Добавляем опцию для отключения базовой карты
 ];
 
