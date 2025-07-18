@@ -11,28 +11,50 @@ import Chat from './components/Chat';
 import PolygonDrawMap from './components/ForMap/PolygonDrawMap';
 import AppLayout from './components/ForMap/AppLayout';
 import AdminPanel from './pages/AdminPanel';
+import DemoLoginModal from './components/DemoLoginModal'; // ИМПОРТ НОВОГО КОМПОНЕНТА ДЛЯ ДЕМО-ДОСТУПА
 
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Функция для выхода из системы
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setIsAuthenticated(false);
-    setUserRole(null);
-    navigate('/login');
-  }, [navigate]);
+  // Функция для выхода из системы (только очистка данных и состояния, без навигации)
+ const handleLogout = useCallback(() => {
+  const currentRole = localStorage.getItem('role');
+  if (currentRole === 'ROLE_DEMO') {
+    localStorage.removeItem('demoPolygons');
+    localStorage.removeItem('demoChatHistories');
+    localStorage.removeItem('lastSelectedPolygonId');
+    console.log("App.jsx: Demo user data cleared from localStorage.");
+  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  setIsAuthenticated(false);
+  setUserRole(null);
+  // navigate('/login'); // This line should be removed or commented out in App.jsx
+}, []);
 
-  // Функция для обработки успешного входа
+  // Функция для обработки успешного входа (как обычных, так и демо)
   const handleLoginSuccess = useCallback((role) => {
     setIsAuthenticated(true);
     setUserRole(role);
-    navigate('/dashboard'); // Перенаправление на дашборд после успешного входа
+    
+    // Логика перенаправления в зависимости от роли
+    if (role === 'ROLE_ADMIN' || role === 'ROLE_SUPER_ADMIN') {
+      navigate('/admin-panel'); // Перенаправление на админ-панель
+    } else if (role === 'ROLE_DEMO') {
+      navigate('/dashboard'); // Перенаправление демо-пользователей на дашборд (или другую демо-страницу)
+    } else {
+      navigate('/dashboard'); // Перенаправление обычных пользователей на дашборд
+    }
+  }, [navigate]);
+
+  // НОВАЯ ФУНКЦИЯ: для закрытия модальных окон (перенаправление на домашнюю страницу)
+  const handleModalClose = useCallback(() => {
+    navigate('/home'); // Перенаправляем на публичную домашнюю страницу при закрытии модала
   }, [navigate]);
 
   // Эффект для проверки статуса аутентификации при загрузке/обновлении страницы
@@ -44,52 +66,62 @@ function AppContent() {
     setIsAuthenticated(isAuth);
     setUserRole(role);
 
-    // Список публичных маршрутов
-    // Обратите внимание: '/' теперь обрабатывается явно в Routes для неавторизованных
-    const publicPaths = ['/login', '/register', '/home']; 
+    // Список публичных маршрутов, доступных без авторизации
+    const publicPaths = ['/', '/home', '/login', '/register', '/demo-login']; 
 
-    // Логика перенаправления для неавторизованных пользователей
-    // Если пользователь не авторизован и пытается получить доступ к защищенному маршруту,
-    // перенаправляем его на страницу входа.
-    // Путь '/' не включен сюда, так как он теперь явно ведет на Home для неавторизованных.
-    if (!isAuth && !publicPaths.includes(location.pathname) && location.pathname !== '/') {
-      navigate('/login');
-    } 
-    // Логика перенаправления для авторизованных пользователей
-    // Если пользователь авторизован и находится на странице входа или регистрации,
-    // перенаправляем его на дашборд.
-    else if (isAuth && (location.pathname === '/login' || location.pathname === '/register')) {
+    // --- ОТЛАДОЧНЫЕ СООБЩЕНИЯ ---
+    console.log('App.jsx - useEffect triggered');
+    console.log('Current Path:', location.pathname);
+    console.log('Is Authenticated (from storage):', isAuth);
+    console.log('Is Current Path a Public Path:', publicPaths.includes(location.pathname));
+    // --- КОНЕЦ ОТЛАДОЧНЫХ СООБЩЕНИЙ ---
+
+    // Логика перенаправления
+    if (!isAuth) {
+      // Если пользователь не авторизован и находится на защищенном маршруте, перенаправляем на /login
+      if (!publicPaths.includes(location.pathname)) {
+        console.log('App.jsx - Redirecting to /login: Not authenticated and not a public path.');
+        navigate('/login');
+      }
+    } else { // Если пользователь авторизован
+      // Если авторизованный пользователь пытается зайти на публичные страницы входа/регистрации/демо, перенаправляем на дашборд
+      if (publicPaths.includes(location.pathname)) { 
+        console.log('App.jsx - Redirecting to /dashboard: Authenticated and on a public path.');
         navigate('/dashboard');
+      }
     }
-    // В остальных случаях (авторизован и на защищенной странице, или авторизован и на публичной)
-    // React Router сам отрендерит нужный компонент, без принудительного перенаправления.
-  }, [location.pathname, navigate, isAuthenticated]); // Добавлено isAuthenticated в зависимости
+  }, [location.pathname, navigate]); // Убрали isAuthenticated из зависимостей, так как используем isAuth напрямую
 
-  const isAdmin = userRole === 'ADMIN'; // Проверка роли администратора
+  const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN'; // Проверка роли администратора
 
   return (
     <>
-      {isAuthenticated && <ProfileHeader onLogout={handleLogout} />} {/* Отображаем заголовок профиля, если пользователь авторизован */}
+      {/* ✨ ИЗМЕНЕНО: Передача userRole в ProfileHeader */}
+      {isAuthenticated && <ProfileHeader onLogout={handleLogout} userRole={userRole} />} 
 
-      {/* Основной контейнер контента, с классом для стилизации в зависимости от аутентификации */}
+      {/* Основной контейнер контента */}
       <div className={`main-content-wrapper ${isAuthenticated ? 'authenticated' : ''}`}> 
         <Routes>
           {/* Маршруты для неавторизованных пользователей */}
           {!isAuthenticated && (
             <>
-              <Route path="/" element={<Home />} /> {/* Для неавторизованных '/' ведет на Home */}
-              <Route path="/home" element={<Home />} /> {/* Home также доступен по прямому пути */}
-              <Route path="/login" element={<RegistrationModal onSuccess={handleLoginSuccess} />} />
-              <Route path="/register" element={<RegistrationModal onSuccess={handleLoginSuccess} />} />
-              {/* Catch-all для неавторизованных: любой другой путь ведет на RegistrationModal */}
-              <Route path="*" element={<RegistrationModal onSuccess={handleLoginSuccess} />} /> 
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              {/* RegistrationModal рендерится напрямую как элемент маршрута */}
+              <Route path="/login" element={<RegistrationModal onSuccess={handleLoginSuccess} onClose={handleModalClose} />} /> {/* ДОБАВЛЕНО onClose */}
+              <Route path="/register" element={<RegistrationModal onSuccess={handleLoginSuccess} onClose={handleModalClose} />} /> {/* ДОБАВЛЕНО onClose */}
+              {/* ✨ ИЗМЕНЕНО: Передача handleLogout в DemoLoginModal */}
+              <Route path="/demo-login" element={<DemoLoginModal onSuccess={handleLoginSuccess} onClose={handleModalClose} handleLogout={handleLogout} />} /> 
+              
+              {/* Catch-all для неавторизованных: любой другой путь ведет на Home */}
+              <Route path="*" element={<Home />} /> 
             </>
           )}
 
           {/* Маршруты для авторизованных пользователей */}
           {isAuthenticated && (
             <>
-              <Route path="/home" element={<Home />} /> {/* Home также доступен для авторизованных */}
+              <Route path="/home" element={<Home />} />
               <Route 
                 path="/dashboard" 
                 element={
@@ -100,8 +132,8 @@ function AppContent() {
               />
               <Route path="/earthdata" element={<EarthData />} />
               <Route path="/chat" element={<Chat handleLogout={handleLogout} />} />
-              <Route path="/" element={<MainPage />} /> {/* Для авторизованных '/' ведет на MainPage */}
-              <Route path="*" element={<MainPage />} /> {/* Catch-all для авторизованных */}
+              <Route path="/" element={<MainPage />} />
+              <Route path="*" element={<MainPage />} />
 
               {/* Маршруты только для администраторов */}
               {isAdmin && (

@@ -1,7 +1,7 @@
 // components/ForMap/MapSidebar.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import './MapSidebar.css'; // Этот файл CSS уже используется для стилизации компонента
+import './MapSidebar.css'; // This CSS file is already used for component styling
 
 console.log("MapSidebar.jsx loaded and running!");
 
@@ -31,14 +31,15 @@ export default function MapSidebar({
   showCropsSection,
   savePolygonToDatabase,
   BASE_API_URL,
-  userRole, // Роль текущего пользователя
-  allUsers, // Список всех пользователей (для админ-панели)
-  selectedUserForAdminView, // Выбранный пользователь для админ-просмотра
-  handleUserSelectForAdminView, // Функция выбора пользователя
-  onUpdateSelectedUserEmail, // Функция для обновления email пользователя
-  showToast, // Добавлен showToast
-  isAnalysisLoading, // Убедитесь, что этот пропс передается, если используется
-  currentAuthenticatedUser // Данные текущего аутентифицированного пользователя
+  userRole, // Current user role
+  allUsers, // List of all users (for admin panel)
+  selectedUserForAdminView, // Selected user for admin view
+  handleUserSelectForAdminView, // User selection function
+  onUpdateSelectedUserEmail, // Function to update user email
+  showToast, // showToast added
+  isAnalysisLoading, // Make sure this prop is passed if used
+  currentAuthenticatedUser, // Current authenticated user data
+  flyToPolygon // NEW: Prop for flying to polygon
 }) {
   const [activeSection, setActiveSection] = useState('map');
   const [showPolygonsList, setShowPolygonsList] = useState(true);
@@ -52,7 +53,7 @@ export default function MapSidebar({
   const [loadingCropData, setLoadingCropData] = useState(false);
   const [cropDataError, setCropDataError] = useState(null);
 
-  // ✨ НОВОЕ СОСТОЯНИЕ: для ввода новой почты
+  // ✨ NEW STATE: for new email input
   const [newEmailForUser, setNewEmailForUser] = useState('');
 
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export default function MapSidebar({
     setCropDataError(null);
     const token = localStorage.getItem('token');
     if (!token) {
-      setCropDataError('Ошибка: Токен аутентификации отсутствует. Пожалуйста, войдите в систему.');
+      setCropDataError('Error: Authentication token is missing. Please log in.');
       setLoadingCropData(false);
       return;
     }
@@ -89,7 +90,7 @@ export default function MapSidebar({
       });
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Ошибка загрузки: ${response.status} - ${errorText}`);
+        throw new Error(`Loading error: ${response.status} - ${errorText}`);
       }
       const data = await response.json();
 
@@ -104,7 +105,7 @@ export default function MapSidebar({
           setter(data);
         }
       } else {
-        setCropDataError(`Некорректный формат данных от сервера для ${url}.`);
+        setCropDataError(`Incorrect data format from server for ${url}.`);
         setter([]);
       }
     } catch (error) {
@@ -117,12 +118,12 @@ export default function MapSidebar({
   }, []);
 
   useEffect(() => {
-    fetchApiData(`${BASE_API_URL}/api/v1/crops/chapters`, setChapters, 'Не удалось загрузить главы культур');
+    fetchApiData(`${BASE_API_URL}/api/v1/crops/chapters`, setChapters, 'Failed to load crop chapters');
   }, [fetchApiData, BASE_API_URL]);
 
   useEffect(() => {
     if (selectedChapter) {
-      fetchApiData(`${BASE_API_URL}/api/v1/crops/by-chapter?chapter=${encodeURIComponent(selectedChapter)}`, setCropsByChapter, 'Не удалось загрузить культуры для выбранной главы');
+      fetchApiData(`${BASE_API_URL}/api/v1/crops/by-chapter?chapter=${encodeURIComponent(selectedChapter)}`, setCropsByChapter, 'Failed to load crops for selected chapter');
       setSelectedCrop('');
       setVarietiesByCrop([]);
       setSelectedVariety('');
@@ -136,7 +137,7 @@ export default function MapSidebar({
 
   useEffect(() => {
     if (selectedCrop) {
-      fetchApiData(`${BASE_API_URL}/api/v1/crops/by-crop?crop=${encodeURIComponent(selectedCrop)}`, setVarietiesByCrop, 'Не удалось загрузить сорта для выбранной культуры');
+      fetchApiData(`${BASE_API_URL}/api/v1/crops/by-crop?crop=${encodeURIComponent(selectedCrop)}`, setVarietiesByCrop, 'Failed to load varieties for selected crop');
       setSelectedVariety('');
     } else {
       setVarietiesByCrop([]);
@@ -202,7 +203,7 @@ export default function MapSidebar({
     }
   }, [selectedPolygon, polygons, chapters, cropsByChapter, varietiesByCrop, loadingCropData]); 
 
-  // Функции изменения размера
+  // Resizing functions
   const handleMouseMove = useCallback((e) => {
     if (!isResizing.current || !sidebarRef.current) return;
 
@@ -244,26 +245,26 @@ export default function MapSidebar({
   }, [handleMouseMove, handleMouseUp]); 
 
   const onSelectAnalysisForPolygon = useCallback((polygon, analysisType) => {
-    console.log(`Запрос анализа ${analysisType} для полигона ID: ${polygon.id}`);
+    console.log(`Requesting ${analysisType} analysis for polygon ID: ${polygon.id}`);
     if (selectedPolygon && selectedPolygon.id === polygon.id) {
-      // Логика для запуска анализа на основе выбранного полигона и типа
-      // Обычно это обрабатывается родительским компонентом, который управляет MapComponent
+      // Logic to trigger analysis based on selected polygon and type
+      // This is usually handled by the parent component that manages MapComponent
     } else {
-      setSelectedPolygon(polygon); // Сначала выбираем полигон
-      // Затем запускаем анализ
+      setSelectedPolygon(polygon); // First select the polygon
+      // Then trigger analysis
     }
-    showToast(`Загрузка анализа ${analysisType}...`, 'info');
-  }, [selectedPolygon, showToast, setSelectedPolygon]); // Добавил setSelectedPolygon в deps
+    showToast(`Loading ${analysisType} analysis...`, 'info');
+  }, [selectedPolygon, showToast, setSelectedPolygon]); // Added setSelectedPolygon to deps
 
   // Mock data for crops if not provided
   const cropsOptions = [
-    { value: 'Зерновые', label: 'Зерновые' },
-    { value: 'Кукуруза', label: 'Кукуруза' },
-    { value: 'Подсолнечник', label: 'Подсолнечник' },
-    { value: 'Картофель', label: 'Картофель' },
-    { value: 'Овощи', label: 'Овощи' },
-    { value: 'Садовые культуры', label: 'Садовые культуры' },
-    { value: 'Другое', label: 'Другое' },
+    { value: 'Cereals', label: 'Cereals' },
+    { value: 'Corn', label: 'Corn' },
+    { value: 'Sunflower', label: 'Sunflower' },
+    { value: 'Potatoes', label: 'Potatoes' },
+    { value: 'Vegetables', label: 'Vegetables' },
+    { value: 'Garden crops', label: 'Garden crops' },
+    { value: 'Other', label: 'Other' },
   ];
 
   const handleClearSelectedPolygon = useCallback(() => {
@@ -273,16 +274,16 @@ export default function MapSidebar({
     }
   }, [setSelectedPolygon, isEditingMode, handleStopAndSaveEdit]);
 
-  // Добавление заглушки для onUpdateSelectedUserEmail если нет функции
+  // Add a fallback for onUpdateSelectedUserEmail if no function is provided
   const actualOnUpdateSelectedUserEmail = onUpdateSelectedUserEmail || (() => console.log('onUpdateSelectedUserEmail is not provided'));
 
-  // Вспомогательная функция для определения, можно ли редактировать полигон
+  // Helper function to determine if a polygon can be edited
   const canEditPolygon = useCallback((polygon) => {
     console.log(`Checking canEditPolygon for polygon ID: ${polygon?.id || 'N/A'}`);
     console.log("  Polygon ownerId:", polygon?.ownerId);
     console.log("  Current userRole:", userRole);
     console.log("  Selected user for admin view:", selectedUserForAdminView);
-    console.log("  Current authenticated user ID:", currentAuthenticatedUser?.id); // Лог для отладки
+    console.log("  Current authenticated user ID:", currentAuthenticatedUser?.id); // Log for debugging
 
     if (!polygon) {
       console.log("  Result: false (no polygon passed to canEditPolygon)");
@@ -293,12 +294,18 @@ export default function MapSidebar({
       return false;
     }
 
+    // ✨ NEW: DEMO user can edit their "own" (local) polygons
+    if (userRole === 'DEMO') {
+      console.log("  Result: true (DEMO user can edit their local polygons)");
+      return true;
+    }
+
     if (userRole === 'SUPER_ADMIN') {
       console.log("  Result: true (SUPER_ADMIN can edit all)");
       return true;
     }
     if (userRole === 'ADMIN') {
-      // Если ADMIN выбрал конкретного пользователя (USER), и полигон принадлежит этому USER'у
+      // If ADMIN has selected a specific user (USER), and the polygon belongs to that USER
       if (selectedUserForAdminView && selectedUserForAdminView.role === 'USER') {
         const isSelectedUserOwner = (polygon.ownerId === selectedUserForAdminView.id);
         console.log(`  ADMIN with selected USER. Is selected USER the owner? ${isSelectedUserOwner}`);
@@ -309,8 +316,8 @@ export default function MapSidebar({
           return false;
         }
       } 
-      // Если ADMIN не выбрал пользователя (просматривает свои полигоны)
-      // и полигон принадлежит текущему ADMIN'у
+      // If ADMIN has not selected a user (viewing their own polygons)
+      // and the polygon belongs to the current ADMIN
       else if (!selectedUserForAdminView && polygon.ownerId === currentAuthenticatedUser?.id) {
         console.log("  ADMIN viewing their own polygons. Result: true (allowing edit)");
         return true;
@@ -320,44 +327,44 @@ export default function MapSidebar({
         return false;
       }
     }
-    // Обычный USER может редактировать только свои полигоны
+    // Regular USER can only edit their own polygons
     if (userRole === 'USER' && polygon.ownerId === currentAuthenticatedUser?.id) {
       console.log("  Result: true (USER editing their own polygon)");
       return true;
     }
     console.log("  Result: false (default case or insufficient permissions)");
-    return false; // По умолчанию, если роль не соответствует или нет прав
-  }, [userRole, selectedUserForAdminView, currentAuthenticatedUser]); // Добавлен currentAuthenticatedUser в deps
+    return false; // By default, if role does not match or insufficient permissions
+  }, [userRole, selectedUserForAdminView, currentAuthenticatedUser]); // Added currentAuthenticatedUser to deps
 
 
   return (
     <div className={`map-sidebar-container`} ref={sidebarRef} style={{ width: `${sidebarWidth}px` }}>
       <div className="map-sidebar-content-wrapper">
-        <h2 className="map-sidebar-section-title"style={{ marginTop: '-5px' }} data-text="Управление картой">Управление картой</h2>
+        <h2 className="map-sidebar-section-title"style={{ marginTop: '-5px' }} data-text="Map Management">Map Management</h2>
         <hr className="map-sidebar-hr" />
 
-        {/* ✨ ИЗМЕНЕНО: Секция администрирования пользователей */}
+        {/* ✨ CHANGED: User Administration Section */}
         {(userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') && allUsers.length > 0 && (
           <div className="map-sidebar-admin-section">
-            <h3 className="map-sidebar-section-title" data-text="Пользователи">Пользователи</h3>
+            <h3 className="map-sidebar-section-title" data-text="Users">Users</h3>
             <select
               className="map-sidebar-dropdown-select"
               onChange={(e) => {
                 const userId = e.target.value;
-                const user = allUsers.find(u => u.id === Number(userId)); // Преобразуем userId в число
+                const user = allUsers.find(u => u.id === Number(userId)); // Convert userId to number
                 handleUserSelectForAdminView(user || null);
                 if (user) {
-                  showToast(`Выбран пользователь: ${user.email}`, 'info');
-                  setNewEmailForUser(user.email); // Устанавливаем текущий email выбранного пользователя
+                  showToast(`User selected: ${user.email}`, 'info');
+                  setNewEmailForUser(user.email); // Set current email of selected user
                 } else {
-                  showToast('Просмотр своих полигонов или всех', 'info');
-                  setNewEmailForUser(''); // Очищаем поле ввода
+                  showToast('Viewing own polygons or all', 'info');
+                  setNewEmailForUser(''); // Clear input field
                 }
               }}
               value={selectedUserForAdminView ? selectedUserForAdminView.id : ''}
               disabled={isFetchingPolygons}
             >
-              <option value="">{userRole === 'SUPER_ADMIN' ? 'Все пользователи' : 'Мои полигоны'}</option>
+              <option value="">{userRole === 'SUPER_ADMIN' ? 'All Users' : 'My Polygons'}</option>
               {allUsers.map(user => (
                 <option key={user.id} value={user.id}>
                   {user.email} (ID: {user.id})
@@ -365,12 +372,12 @@ export default function MapSidebar({
               ))}
             </select>
 
-            {selectedUserForAdminView && ( // Показываем поля для редактирования только если пользователь выбран
+            {selectedUserForAdminView && ( // Show edit fields only if user is selected
               <div className="admin-user-edit-block">
                 <input
                   type="email"
-                  className="map-sidebar-input" // Используем новый класс для стилизации
-                  placeholder="Новый email пользователя"
+                  className="map-sidebar-input" // Use new class for styling
+                  placeholder="New user email"
                   value={newEmailForUser}
                   onChange={(e) => setNewEmailForUser(e.target.value)}
                   disabled={isSavingPolygon || isFetchingPolygons}
@@ -380,13 +387,13 @@ export default function MapSidebar({
                     if (selectedUserForAdminView && newEmailForUser.trim() !== '') {
                       actualOnUpdateSelectedUserEmail(selectedUserForAdminView.id, newEmailForUser.trim());
                     } else {
-                      showToast('Выберите пользователя и введите новый email.', 'warning');
+                      showToast('Select a user and enter a new email.', 'warning');
                     }
                   }}
                   disabled={isSavingPolygon || isFetchingPolygons || !selectedUserForAdminView || newEmailForUser.trim() === ''}
-                  className="map-sidebar-button admin-action-button" // Используем новый класс для стилизации
+                  className="map-sidebar-button admin-action-button" // Use new class for styling
                 >
-                  Изменить почту
+                  Change Email
                 </button>
               </div>
             )}
@@ -397,20 +404,20 @@ export default function MapSidebar({
         <div className="map-sidebar-controls">
           <button
             onClick={startDrawing}
-            disabled={isDrawing || isEditingMode || isSavingPolygon || isFetchingPolygons}
+            disabled={isDrawing || isEditingMode || isSavingPolygon || isFetchingPolygons || (userRole === 'DEMO' && polygons.length >= 1)}
             className="map-sidebar-button draw-button"
-            aria-label={isDrawing ? 'Рисование активно' : 'Начать рисование полигона'}
+            aria-label={isDrawing ? 'Drawing active' : 'Start drawing polygon'}
           >
-            {isDrawing ? '✏️ Рисую' : '✏️ Рисовать'}
+            {isDrawing ? '✏️ Drawing' : '✏️ Draw'}
           </button>
 
           <button
             onClick={clearAll}
             disabled={isSavingPolygon || isFetchingPolygons || polygons.length === 0}
             className="map-sidebar-button clear-button"
-            aria-label="Очистить все полигоны"
+            aria-label="Clear all polygons"
           >
-            🗑️ Очистить
+            🗑️ Clear
           </button>
 
           <button
@@ -422,9 +429,9 @@ export default function MapSidebar({
             }}
             disabled={isSavingPolygon || isFetchingPolygons || isDrawing || isEditingMode}
             className="map-sidebar-button toggle-list-button"
-            aria-label={isFetchingPolygons ? 'Загружаю список' : (showPolygonsList ? 'Скрыть список полигонов' : 'Показать список полигонов')}
+            aria-label={isFetchingPolygons ? 'Loading list' : (showPolygonsList ? 'Hide polygon list' : 'Show polygon list')}
           >
-            {isFetchingPolygons ? '📂 Загружаю...' : '👀 Список'}
+            {isFetchingPolygons ? '📂 Loading...' : '👀 List'}
           </button>
         </div>
 
@@ -432,23 +439,24 @@ export default function MapSidebar({
 
         {showPolygonsList && polygons.length > 0 ? ( 
           <div className="polygon-list-section">
-            <h3 className="polygon-list-header" data-text={`Полигоны (${polygons.length})`}>
-              📐 Полигоны ({polygons.length})
+            <h3 className="polygon-list-header" data-text={`Polygons (${polygons.length})`}>
+              📐 Polygons ({polygons.length})
             </h3>
             <div className="polygon-list-container">
-              {polygons.map((polygon, idx) => {
-                const canModifyThisPolygon = canEditPolygon(polygon); // Используем общую функцию
+              {polygons.map((polygon) => { // Removed idx from here as it's not used for key
+                const canModifyThisPolygon = canEditPolygon(polygon); // Use common function
 
                 return (
                   <div
-                    key={polygon.id}
+                    key={polygon.id} // Use polygon.id directly as the key
                     className={`polygon-item ${selectedPolygon && selectedPolygon.id === polygon.id ? 'selected' : ''}`}
                     onClick={() => {
                       setSelectedPolygon(polygon); 
-                      if (canModifyThisPolygon) { // Только если есть права, начинаем редактирование
+                      flyToPolygon(polygon); // NEW: Fly to the selected polygon
+                      if (canModifyThisPolygon) { // Only if there are rights, start editing
                         handleEditPolygon(polygon.id); 
                       } else {
-                        showToast("У вас нет прав для редактирования этого полигона.", "warning");
+                        showToast("You do not have permission to edit this polygon.", "warning");
                       }
                     }}
                   >
@@ -482,11 +490,11 @@ export default function MapSidebar({
                           }}
                           onClick={(e) => e.stopPropagation()}
                           className="polygon-name-input"
-                          disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Отключаем, если нет прав
+                          disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Disable if no rights
                         />
                       ) : (
                         <strong className="polygon-name-display">
-                          {polygon.name || `Полигон #${idx + 1}`}
+                          {polygon.name || `Polygon #${polygons.indexOf(polygon) + 1}`} {/* Use index for display if no name */}
                         </strong>
                       )}
 
@@ -494,31 +502,31 @@ export default function MapSidebar({
                         <button
                           onClick={(e) => { e.stopPropagation(); deletePolygon(polygon.id); }}
                           className="polygon-action-button delete"
-                          disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Отключаем, если нет прав
+                          disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Disable if no rights
                         >
-                          Удалить
+                          Delete
                         </button>
                         {(selectedPolygon && selectedPolygon.id === polygon.id && (isEditingMode || isDrawing)) && (
                           <button
                             onClick={(e) => { e.stopPropagation(); handleStopAndSaveEdit(polygon.id); }}
-                            disabled={(!isEditingMode && !isDrawing) || isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Отключаем, если нет прав
+                            disabled={(!isEditingMode && !isDrawing) || isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Disable if no rights
                             className="polygon-action-button save-polygon"
                           >
-                            {isSavingPolygon ? '💾 Сохраняю...' : '💾 Сохранить'}
+                            {isSavingPolygon ? '💾 Saving...' : '💾 Save'}
                           </button>
                         )}
                       </div>
                     </div>
                     <div className="polygon-details-info">
-                      <span>Точек: {polygon.coordinates.length}</span>
-                      <span>Площадь: {formatArea(calculateArea(polygon.coordinates))}</span>
+                      <span>Points: {polygon.coordinates.length}</span>
+                      <span>Area: {formatArea(calculateArea(polygon.coordinates))}</span>
                       <div style={{ backgroundColor: polygon.color }} className="polygon-color-box"></div>
                     </div>
                     {selectedPolygon && selectedPolygon.id === polygon.id && (
                       <div className="polygon-meta-edit">
                         <div className="polygon-meta-group">
                           <label htmlFor={`color-picker-${polygon.id}`} className="polygon-detail-label">
-                            Цвет полигона:
+                            Polygon Color:
                           </label>
                           <input
                             id={`color-picker-${polygon.id}`}
@@ -538,13 +546,13 @@ export default function MapSidebar({
                             }}
                             onClick={(e) => e.stopPropagation()}
                             className="polygon-color-input"
-                            disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Отключаем, если нет прав
+                            disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Disable if no rights
                           />
                         </div>
 
                         <div className="polygon-meta-group">
                           <label htmlFor={`chapter-select-${polygon.id}`} className="polygon-detail-label">
-                            Глава культуры:
+                            Crop Chapter:
                           </label>
                           <select
                             id={`chapter-select-${polygon.id}`}
@@ -559,10 +567,10 @@ export default function MapSidebar({
                             onBlur={(e) => {
                                 e.stopPropagation();
                             }}
-                            disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !canModifyThisPolygon} // Отключаем, если нет прав
+                            disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !canModifyThisPolygon} // Disable if no rights
                             className="polygon-crop-select"
                           >
-                            <option value="">Выберите главу</option>
+                            <option value="">Select Chapter</option>
                             {chapters.map((chapter) => (
                               <option key={chapter} value={chapter}>
                                 {chapter}
@@ -574,7 +582,7 @@ export default function MapSidebar({
                         {selectedChapter && (
                           <div className="polygon-meta-group">
                             <label htmlFor={`crop-select-${polygon.id}`} className="polygon-detail-label">
-                              Культура:
+                              Crop:
                             </label>
                             <select
                               id={`crop-select-${polygon.id}`}
@@ -589,13 +597,13 @@ export default function MapSidebar({
                               onBlur={(e) => {
                                   e.stopPropagation();
                               }}
-                              disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !selectedChapter || !canModifyThisPolygon} // Отключаем, если нет прав
+                              disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !selectedChapter || !canModifyThisPolygon} // Disable if no rights
                               className="polygon-crop-select"
                             >
-                              <option value="">Выберите культуру</option>
+                              <option value="">Select Crop</option>
                               {cropsByChapter.map((crop) => (
                                 <option key={crop.name || ''} value={crop.name || ''}>
-                                  {crop.name || 'Неизвестная культура'}
+                                  {crop.name || 'Unknown Crop'}
                                 </option>
                               ))}
                             </select>
@@ -605,7 +613,7 @@ export default function MapSidebar({
                         {selectedCrop && (
                           <div className="polygon-meta-group">
                             <label htmlFor={`variety-select-${polygon.id}`} className="polygon-detail-label">
-                              Сорт:
+                              Variety:
                             </label>
                             <select
                               id={`variety-select-${polygon.id}`}
@@ -619,10 +627,10 @@ export default function MapSidebar({
                               onBlur={(e) => {
                                   e.stopPropagation();
                               }}
-                              disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !selectedCrop || !canModifyThisPolygon} // Отключаем, если нет прав
+                              disabled={isSavingPolygon || isFetchingPolygons || loadingCropData || !selectedCrop || !canModifyThisPolygon} // Disable if no rights
                               className="polygon-crop-select"
                             >
-                              <option value="">Выберите сорт</option>
+                              <option value="">Select Variety</option>
                               {varietiesByCrop.map((variety) => (
                                 <option key={variety} value={variety}>
                                   {variety}
@@ -640,12 +648,12 @@ export default function MapSidebar({
 
                         <div className="polygon-meta-group">
                           <label htmlFor={`comment-input-${polygon.id}`} className="polygon-detail-label">
-                            Комментарий:
+                            Comment:
                           </label>
                           <input
                             id={`comment-input-${polygon.id}`}
                             type="text"
-                            placeholder="Добавить комментарий..."
+                            placeholder="Add comment..."
                             value={polygon.comment || ''}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -672,7 +680,7 @@ export default function MapSidebar({
                             }}
                             onClick={(e) => e.stopPropagation()}
                             className="polygon-comment-input"
-                            disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Отключаем, если нет прав
+                            disabled={isSavingPolygon || isFetchingPolygons || !canModifyThisPolygon} // Disable if no rights
                           />
                         </div>
                       </div>
@@ -693,9 +701,9 @@ export default function MapSidebar({
           showPolygonsList && !isFetchingPolygons && (
             <div className="polygon-list-section">
               <h3 className="polygon-list-header">
-                📐 Полигоны (0)
+                📐 Polygons (0)
               </h3>
-              <p className="no-polygons-message">Полигоны не найдены.</p>
+              <p className="no-polygons-message">No polygons found.</p>
             </div>
           )
         )}
@@ -705,22 +713,22 @@ export default function MapSidebar({
         <div className="crops-summary-section">
           <div className="crops-summary-header">
             <h4 className="crops-summary-title">
-              🌾 Сводка культур
+              🌾 Crop Summary
             </h4>
             <div className="crops-summary-actions">
               <button
-                onClick={() => fetchApiData(`${BASE_API_URL}/api/v1/crops/chapters`, setChapters, 'Не удалось обновить главы культур')}
+                onClick={() => fetchApiData(`${BASE_API_URL}/api/v1/crops/chapters`, setChapters, 'Failed to update crop chapters')}
                 disabled={loadingCropData || isSavingPolygon || isFetchingPolygons}
                 className="crops-summary-button"
-                aria-label="Обновить данные по культурам"
+                aria-label="Refresh crop data"
               >
-                {loadingCropData ? 'Загружаю...' : ''}
+                {loadingCropData ? 'Loading...' : ''}
               </button>
               <button
                 onClick={clearAllCrops}
                 disabled={isSavingPolygon || isFetchingPolygons}
                 className="crops-summary-button clear-crops"
-                aria-label="Очистить все культуры"
+                aria-label="Clear all crops"
               >
                 🗑️
               </button>
@@ -735,18 +743,18 @@ export default function MapSidebar({
 
           <div className="crops-summary-content">
             <div className="crops-summary-details">
-              <div><strong>Сводка:</strong></div>
+              <div><strong>Summary:</strong></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px' }}>
-                <div>Полигонов: {polygons.length}</div>
-                <div>С культурами: {polygons.filter((p) => p.crop).length}</div>
+                <div>Polygons: {polygons.length}</div>
+                <div>With crops: {polygons.filter((p) => p.crop).length}</div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  Общая площадь:{' '}
+                  Total area:{' '}
                   {formatArea(polygons.reduce((total, p) => total + calculateArea(p.coordinates), 0))}
                 </div>
               </div>
               {polygons.some((p) => p.crop) && (
                 <div className="crops-by-type">
-                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>По культурам:</div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>By Crop:</div>
                   <div className="crops-by-type-list">
                     {Object.entries(
                       polygons.filter((p) => p.crop).reduce((acc, p) => {

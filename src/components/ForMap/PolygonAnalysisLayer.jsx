@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, useMap } from 'react-leaflet'; // Import useMap hook
 import L from 'leaflet';
 
-const BASE_API_URL = 'https://back-production-b3f2.up.railway.app';
+const BASE_API_URL = 'http://localhost:8080';
 
 export default function PolygonAnalysisLayer({
   selectedPolygonData,

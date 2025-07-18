@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import './ProfileHeader.css';
 
-export default function ProfileHeader({ onLogout = () => {} }) {
+// Add userRole to props
+export default function ProfileHeader({ onLogout = () => {}, userRole }) {
   const [activeSection, setActiveSection] = useState('home');
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Определение активной секции
+  // Determine active section
   useEffect(() => {
     if (location.pathname === '/') {
       setActiveSection('home');
@@ -21,9 +22,21 @@ export default function ProfileHeader({ onLogout = () => {} }) {
     }
   }, [location.pathname]);
 
-  // Переключение меню настроек
+  // Toggle settings menu
   const toggleSettingsMenu = () => {
     setShowSettingsMenu(prev => !prev);
+  };
+
+  // Updated logout function
+  const handleLogoutClick = () => {
+    // If user is DEMO, redirect to https://agrofarm.kz/
+    if (userRole === 'ROLE_DEMO') { // Ensure role check matches stored role (e.g., 'ROLE_DEMO')
+      onLogout(); // Call the original logout function (clears localStorage)
+      window.location.href = 'https://agrofarm.kz/'; // Redirect to external URL
+    } else {
+      onLogout(); // For regular users, call the original logout function (which navigates to /login)
+      navigate('/login'); // Explicitly navigate to /login for non-demo users
+    }
   };
 
   return (
@@ -107,7 +120,7 @@ export default function ProfileHeader({ onLogout = () => {} }) {
           </button>
 
           <div className={`settings-dropdown ${showSettingsMenu ? 'show' : ''}`}>
-            <button onClick={onLogout}>Выйти</button>
+            <button onClick={handleLogoutClick}>Выйти</button> {/* Use new function */}
           </div>
         </div>
       </div>

@@ -5,13 +5,14 @@ import './RegistrationModal.css';
 
 export default function RegistrationModal({ onClose, onSuccess }) {
   const [email, setEmail] = useState("");
-  const [login, setLogin] = useState("");
+  const [login, setLogin] = useState(""); // Используется для регистрации (Username)
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true); // По умолчанию на SIGN IN
+  // const [isDemoMode, setIsDemoMode] = useState(false); // УДАЛЕНО: НОВОЕ СОСТОЯНИЕ: для демо-режима
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState(0);
   const [recoveryCode, setRecoveryCode] = useState("");
@@ -22,14 +23,10 @@ export default function RegistrationModal({ onClose, onSuccess }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Эта логика теперь ТОЛЬКО для управления состоянием модального окна,
-    // а не для перенаправления. Перенаправление обрабатывается в App.jsx.
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('role');
     if (token && userRole) {
       setIsRegistered(true);
-      // onSuccess?.(userRole); // <<< УДАЛЕНА ЭТА СТРОКА!
-      // App.jsx теперь сам решает, куда перенаправить авторизованного пользователя.
     }
 
     const container = document.querySelector('.registration-modal');
@@ -63,11 +60,18 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     setRepeatNewPassword("");
   };
 
-  const handleTabClick = (mode) => {
+  const handleTabClick = (mode) => { // ИЗМЕНЕНО: Удален параметр isDemo
     setIsLoginMode(mode);
+    // setIsDemoMode(isDemo); // УДАЛЕНО
     setIsRecovering(false);
     setRecoveryStep(0);
     resetFormFields();
+
+    // УДАЛЕНО: Логика предзаполнения для демо-режима
+    // if (isDemo) {
+    //   setLogin("TEST"); 
+    //   setPassword("TEST");
+    // }
   };
 
   async function handleRegister(e) {
@@ -90,7 +94,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch('https://back-production-b3f2.up.railway.app/api/v1/auth/register', {
+      const response = await fetch('http://localhost:8080/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: login, email, password })
@@ -103,7 +107,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
       }
 
       setError("Успешная регистрация! Теперь войдите в систему.");
-      handleTabClick(true);
+      handleTabClick(true); // Переключаемся на вкладку входа
     } catch (err) {
       console.error("Ошибка регистрации:", err);
       setError("Сервер не отвечает");
@@ -122,7 +126,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/auth/login", {
+      const response = await fetch("http://localhost:8080/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -139,23 +143,57 @@ export default function RegistrationModal({ onClose, onSuccess }) {
 
       if (data.token) {
         localStorage.setItem('token', data.token);
-
-        // *** ВОТ ГДЕ МЫ ИЗВЛЕКАЕМ РОЛЬ ИЗ ОТВЕТА БЭКЕНДА ***
         if (data.roles && Array.isArray(data.roles) && data.roles.length > 0) {
           userRole = data.roles[0];
           localStorage.setItem('role', userRole);
         } else {
-          localStorage.setItem('role', userRole); // Сохраняем 'ROLE_USER' по умолчанию
+          localStorage.setItem('role', userRole);
         }
       }
 
       setIsRegistered(true);
-      onSuccess?.(userRole); // Передаем полученную роль в App.jsx
+      onClose(); // Закрываем модальное окно
+      onSuccess?.(userRole); // Передаем полученную роль в App.jsx для перенаправления
     } catch (err) {
       console.error("Ошибка авторизации:", err);
       setError("Ошибка подключения к серверу");
     }
   }
+
+  // УДАЛЕНО: НОВАЯ ФУНКЦИЯ: Обработка входа для демо-пользователя
+  // async function handleDemoLogin(e) {
+  //   e.preventDefault();
+  //   setError("");
+  //   if (login !== "TEST" || password !== "TEST") {
+  //     setError("Для демо-доступа используйте Логин: TEST, Пароль: TEST");
+  //     return;
+  //   }
+  //   try {
+  //     const response = await fetch("http://localhost:8080/api/v1/auth/demo/login", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         username: login, 
+  //         password: password
+  //       })
+  //     });
+  //     const data = await response.json();
+  //     if (!response.ok) {
+  //       setError(data.message || "Ошибка демо-входа");
+  //       return;
+  //     }
+  //     if (data.token) {
+  //       localStorage.setItem('token', data.token);
+  //       localStorage.setItem('role', "ROLE_DEMO"); 
+  //     }
+  //     setIsRegistered(true);
+  //     onClose(); 
+  //     onSuccess?.("ROLE_DEMO"); 
+  //   } catch (err) {
+  //     console.error("Ошибка демо-авторизации:", err);
+  //     setError("Ошибка подключения к серверу");
+  //   }
+  // }
 
   async function handleRecoverPassword(e) {
     e.preventDefault();
@@ -167,7 +205,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
         return;
       }
       try {
-        const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/verify", {
+        const response = await fetch("http://localhost:8080/api/v1/recovery/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, code: recoveryCode })
@@ -196,7 +234,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
       }
 
       try {
-        const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/reset", {
+        const response = await fetch("http://localhost:8080/api/v1/recovery/reset", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, newPassword })
@@ -231,7 +269,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     }
 
     try {
-      const response = await fetch("https://back-production-b3f2.up.railway.app/api/v1/recovery/request", {
+      const response = await fetch("http://localhost:8080/api/v1/recovery/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -259,17 +297,19 @@ export default function RegistrationModal({ onClose, onSuccess }) {
 
   return (
     <div className="registration-modal">
-      <div className="modal-overlay" onClick={onClose}></div>
+      {/* ✨ УДАЛЕНО: onClick={onClose} из modal-overlay */}
+      <div className="modal-overlay"></div>
       <div className="registration-wrapper">
         <div className="registration-content">
           {!isRecovering && (
             <div className="auth-tabs">
               <div className={`auth-tab ${!isLoginMode ? "active" : ""}`} onClick={() => handleTabClick(false)}>SIGN UP</div>
               <div className={`auth-tab ${isLoginMode ? "active" : ""}`} onClick={() => handleTabClick(true)}>SIGN IN</div>
+              {/* УДАЛЕНО: <div className={`auth-tab ${isDemoMode ? "active" : ""}`} onClick={() => handleTabClick(true, true)}>DEMO LOGIN</div> */}
             </div>
           )}
 
-          {!isLoginMode && !isRecovering && (
+          {!isLoginMode && !isRecovering && ( // Форма для SIGN UP (условие упрощено)
             <form className="registration-form" onSubmit={handleRegister}>
               <div className="input-group">
                 <input type="text" placeholder="Username" value={login} onChange={(e) => setLogin(e.target.value)} required />
@@ -292,7 +332,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
             </form>
           )}
 
-          {isLoginMode && !isRecovering && (
+          {isLoginMode && !isRecovering && ( // Форма для SIGN IN (условие упрощено)
             <form className="registration-form" onSubmit={handleLogin}>
               <div className="input-group">
                 <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -311,6 +351,20 @@ export default function RegistrationModal({ onClose, onSuccess }) {
               <button type="submit" className="submit-btn">LOGIN</button>
             </form>
           )}
+
+          {/* УДАЛЕНО: НОВАЯ ФОРМА: для DEMO LOGIN */}
+          {/* {isDemoMode && !isRecovering && ( 
+            <form className="registration-form" onSubmit={handleDemoLogin}>
+              <div className="input-group">
+                <input type="text" placeholder="Login (TEST)" value={login} onChange={(e) => setLogin(e.target.value)} required />
+              </div>
+              <div className="input-group">
+                <input type="password" placeholder="Password (TEST)" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+              {error && <div className="error">{error}</div>}
+              <button type="submit" className="submit-btn">LOGIN</button>
+            </form>
+          )} */}
 
           {isRecovering && (
             <form className="registration-form" onSubmit={handleRecoverPassword}>

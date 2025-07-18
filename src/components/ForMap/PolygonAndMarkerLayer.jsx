@@ -8,7 +8,7 @@ export default function PolygonAndMarkerLayer({
   calculateArea, 
   formatArea, 
   selectedPolygon, // Теперь это объект полигона или null
-  flyToMarker,
+  flyToMarker, // Prop to fly to a specific marker/location
   setSelectedPolygon, // Функция для установки выбранного полигона
   // onSelectAnalysisForPolygon больше не нужен здесь, так как кнопки перенесены
 }) {
@@ -75,6 +75,10 @@ export default function PolygonAndMarkerLayer({
                   if (!isSelected) {
                     setSelectedPolygon(polygon);
                   }
+                  // Optionally fly to polygon on click
+                  if (flyToMarker && center[0] !== 0 || center[1] !== 0) {
+                    flyToMarker(center, 15);
+                  }
                 },
             }}
           >
@@ -86,7 +90,9 @@ export default function PolygonAndMarkerLayer({
                 eventHandlers={{
                   click: () => {
                     console.log(`Маркер полигона с ID: ${polygon.id} был кликнут.`);
-                    flyToMarker(center, 15);
+                    if (flyToMarker) {
+                      flyToMarker(center, 15);
+                    }
                     // Не сбрасываем, если уже выбран
                     if (!isSelected) {
                         setSelectedPolygon(polygon); 

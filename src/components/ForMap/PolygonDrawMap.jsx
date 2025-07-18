@@ -10,9 +10,9 @@ import LayerSelectionBlock from './LayerSelectionBlock';
 import UserSelectionBlock from './UserSelectionBlock';
 import * as L from 'leaflet';
 import './Map.css';
-import { jwtDecode } from 'jwt-decode'; // Импортируем jwtDecode
+import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 
-const BASE_API_URL = 'https://back-production-b3f2.up.railway.app';
+const BASE_API_URL = 'http://localhost:8080';
 
 async function parseResponseBody(response) {
   const contentType = response.headers.get("content-type");
@@ -72,14 +72,14 @@ export default function PolygonDrawMap({ handleLogout }) {
   const [userRole, setUserRole] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
   const [selectedUserForAdminView, setSelectedUserForAdminView] = useState(null);
-  const [currentAuthenticatedUser, setCurrentAuthenticatedUser] = useState(null); // Состояние для данных текущего аутентифицированного пользователя
+  const [currentAuthenticatedUser, setCurrentAuthenticatedUser] = useState(null); // State for current authenticated user data
 
   const [layerBlockHeight, setLayerBlockHeight] = useState(0);
   const layerBlockInitialBottom = 35;
 
   const navigate = useNavigate();
 
-  // Состояние для хранения экземпляра карты
+  // State for map instance
   const [mapInstance, setMapInstance] = useState(null);
 
   const showToast = useCallback((message, type = 'info') => {
@@ -117,10 +117,56 @@ export default function PolygonDrawMap({ handleLogout }) {
     return `${(area / 1000000).toFixed(1)} км²`;
   }, []);
 
+  // Function to save polygons to localStorage for DEMO user
+  const saveDemoPolygonsToLocalStorage = useCallback((currentPolygons) => {
+    if (userRole === 'DEMO') {
+      try {
+        localStorage.setItem('demoPolygons', JSON.stringify(currentPolygons));
+        console.log("PolygonDrawMap: Demo polygons saved to localStorage.");
+      } catch (e) {
+        console.error("Error saving demo polygons to localStorage:", e);
+        showToast('Error saving demo polygons locally.', 'error');
+      }
+    }
+  }, [userRole, showToast]);
+
   // Define showMyPolygons before savePolygonToDatabase
   const showMyPolygons = useCallback(async (userIdToFetch = null) => {
-    // Если userIdToFetch предоставлен и является числом, используем его
-    // Иначе, если userIdToFetch null, вызываем /api/polygons/user (без ID)
+    // If userRole === 'DEMO', load from localStorage
+    if (userRole === 'DEMO') {
+      console.log("PolygonDrawMap: DEMO user detected. Loading polygons from localStorage.");
+      try {
+        const storedPolygons = localStorage.getItem('demoPolygons');
+        if (storedPolygons) {
+          const parsedPolygons = JSON.parse(storedPolygons);
+          if (Array.isArray(parsedPolygons) && parsedPolygons.every(p => p && p.coordinates && Array.isArray(p.coordinates) && p.coordinates.length >= 3)) {
+            const closedPolygons = parsedPolygons.map(p => ({
+              ...p,
+              coordinates: ensurePolygonClosed(p.coordinates)
+            }));
+            setPolygons(closedPolygons);
+            showToast(`Loaded ${closedPolygons.length} polygons from local storage for DEMO user.`, 'success');
+          } else {
+            console.warn('Invalid demo polygons data format in localStorage. Clearing.');
+            localStorage.removeItem('demoPolygons');
+            setPolygons([]);
+          }
+        } else {
+          setPolygons([]);
+          showToast('No polygons found in local storage for DEMO user.', 'info');
+        }
+      } catch (error) {
+        console.error("Error loading demo polygons from localStorage:", error);
+        showToast('Error loading demo polygons from local storage.', 'error');
+        localStorage.removeItem('demoPolygons');
+        setPolygons([]);
+      } finally {
+        setIsFetchingPolygons(false);
+      }
+      return; // Exit, as DEMO user does not need to access backend
+    }
+
+    // Logic for non-DEMO users (USER, ADMIN, SUPER_ADMIN)
     const fetchUrl = (userIdToFetch !== null && !isNaN(Number(userIdToFetch))) 
       ? `${BASE_API_URL}/api/polygons/user/${userIdToFetch}` 
       : `${BASE_API_URL}/api/polygons/user`;
@@ -130,8 +176,11 @@ export default function PolygonDrawMap({ handleLogout }) {
     if (!token) {
       showToast('Error: Authentication token is missing. Please log in again.', 'error');
       console.error('Error: Authentication token is missing.');
-      // Не вызываем handleLogout/navigate здесь, чтобы избежать циклов,
-      // так как это уже обрабатывается в useEffect инициализации токена.
+      if (handleLogout) {
+        handleLogout();
+      } else {
+        navigate('/login');
+      }
       return;
     }
     setIsFetchingPolygons(true);
@@ -151,8 +200,6 @@ export default function PolygonDrawMap({ handleLogout }) {
               errorMessage = data;
             }
             showToast(`Error loading polygons from server: ${errorMessage}`, 'error');
-            // Если 401/403, это может быть из-за истекшего токена или проблем с правами.
-            // Перенаправляем на логин.
             if (response.status === 401 || response.status === 403) {
               if (handleLogout) {
                 handleLogout();
@@ -170,9 +217,7 @@ export default function PolygonDrawMap({ handleLogout }) {
             let comment = item.comment || null;
             let color = item.color || '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
             
-            // Получаем userId напрямую из item
             const ownerId = item.userId || null; 
-            // ownerRole не передается напрямую, поэтому оставим логику для определения
             const ownerRole = item.user?.role || (ownerId ? (userRole === 'ADMIN' && ownerId === currentAuthenticatedUser?.id ? 'ADMIN' : 'USER') : 'UNKNOWN'); 
 
             try {
@@ -194,8 +239,8 @@ export default function PolygonDrawMap({ handleLogout }) {
               crop: crop,
               name: name,
               comment: comment,
-              ownerRole: ownerRole, // Сохраняем роль владельца
-              ownerId: ownerId // Сохраняем ID владельца
+              ownerRole: ownerRole, 
+              ownerId: ownerId 
             };
           }).filter(p => p.coordinates.length >= 3);
           setPolygons(loadedPolygons);
@@ -204,9 +249,7 @@ export default function PolygonDrawMap({ handleLogout }) {
           setIsEditingMode(false);
           setEditingMapPolygon(null);
           editableFGRef.current?.clearLayers();
-          // setSelectedPolygon(null); // Убрано, чтобы не сбрасывать выбранный полигон при обновлении списка
 
-          // ✨ НОВОЕ: Обновляем currentAuthenticatedUser.id, если он еще не установлен ИЛИ если ID был email, а теперь мы получили числовой ID от бэкенда
           if (currentAuthenticatedUser && (currentAuthenticatedUser.id === null || isNaN(Number(currentAuthenticatedUser.id))) && loadedPolygons.length > 0) {
             const firstPolygonOwnerId = loadedPolygons[0].ownerId;
             if (firstPolygonOwnerId !== null && !isNaN(Number(firstPolygonOwnerId))) {
@@ -225,17 +268,34 @@ export default function PolygonDrawMap({ handleLogout }) {
     } finally {
       setIsFetchingPolygons(false);
     }
-  }, [showToast, handleLogout, navigate, userRole, currentAuthenticatedUser]); // Добавлены userRole, currentAuthenticatedUser в зависимости
+  }, [showToast, handleLogout, navigate, userRole, currentAuthenticatedUser, saveDemoPolygonsToLocalStorage]); // Added saveDemoPolygonsToLocalStorage to deps
 
-  // savePolygonToDatabase теперь принимает опциональный targetUserId
+  // savePolygonToDatabase now accepts an optional targetUserId
   const savePolygonToDatabase = useCallback(async (polygonData, isUpdate = false, targetUserId = null) => {
     const { id, name, coordinates, crop, comment, color } = polygonData;
     if (!name || name.trim() === '') {
-      showToast('Ошибка сохранения: название полигона не может быть пустым.', 'error');
-      console.error('Ошибка сохранения: название полигона не может быть пустым.');
+      showToast('Error saving: polygon name cannot be empty.', 'error');
+      console.error('Error saving: polygon name cannot be empty.');
       return;
     }
-    // Убедитесь, что координаты в формате [lng, lat] для GeoJSON
+
+    // If DEMO user, save locally and simulate success
+    if (userRole === 'DEMO') {
+      setPolygons(prev => {
+        const updatedPolys = isUpdate 
+          ? prev.map(p => p.id === id ? { ...polygonData, ownerRole: 'DEMO', ownerId: 0 } : p)
+          : [...prev, { ...polygonData, ownerRole: 'DEMO', ownerId: 0 }];
+        saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
+        return updatedPolys;
+      });
+      setSelectedPolygon(polygonData); // Update selected polygon
+      setIsEditingMode(false); // Disable editing mode after saving
+      showToast(`Polygon "${name}" successfully ${isUpdate ? 'updated' : 'saved'} locally (demo mode)!`, 'success');
+      setIsSavingPolygon(false);
+      return;
+    }
+
+    // Logic for non-DEMO users (USER, ADMIN, SUPER_ADMIN)
     let geoJsonCoords = ensurePolygonClosed(coordinates).map(coord => [coord[1], coord[0]]);
     const geoJsonGeometry = {
         type: "Polygon",
@@ -244,7 +304,7 @@ export default function PolygonDrawMap({ handleLogout }) {
     const geoJsonString = JSON.stringify(geoJsonGeometry);
     const token = localStorage.getItem('token');
     if (!token) {
-      showToast('Ошибка: Токен аутентификации отсутствует. Пожалуйста, войдите в систему.', 'error');
+      showToast('Error: Authentication token is missing. Please log in.', 'error');
       if (handleLogout) handleLogout();
       else navigate('/login');
       return;
@@ -252,11 +312,9 @@ export default function PolygonDrawMap({ handleLogout }) {
     setIsSavingPolygon(true);
     try {
       const method = isUpdate ? 'PUT' : 'POST';
-      // Передаем targetUserId как параметр запроса для создания нового полигона
       const url = isUpdate ? `${BASE_API_URL}/api/polygons/${id}` : `${BASE_API_URL}/api/polygons/create${targetUserId ? `?targetUserId=${targetUserId}` : ''}`;
       
-      // ✨ ИСПРАВЛЕНО: Преобразуем id в чистый UUID формат для отправки на бэкенд
-      const polygonIdToSend = id.startsWith('temp-') ? id.substring(5) : id; // Удаляем "temp-" префикс, если он есть
+      const polygonIdToSend = id.startsWith('temp-') ? id.substring(5) : id; 
       
       const response = await fetch(url, {
         method: method,
@@ -265,7 +323,7 @@ export default function PolygonDrawMap({ handleLogout }) {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          id: polygonIdToSend, // Передаем очищенный id для нового полигона
+          id: polygonIdToSend, 
           geoJson: geoJsonString,
           name: name,
           crop: crop || null,
@@ -281,30 +339,34 @@ export default function PolygonDrawMap({ handleLogout }) {
         } else if (typeof responseBody === 'string' && responseBody.length > 0) {
           errorMessage = responseBody; 
         }
-        throw new Error(`Ошибка ${isUpdate ? 'обновления' : 'сохранения'} полигона на сервере: ${errorMessage}`);
+        throw new Error(`Error ${isUpdate ? 'updating' : 'saving'} polygon on server: ${errorMessage}`);
       }
       
-      showToast(`Полигон "${name}" успешно ${isUpdate ? 'обновлен' : 'сохранен'} на сервере!`, 'success');
+      showToast(`Polygon "${name}" successfully ${isUpdate ? 'updated' : 'saved'} on server!`, 'success');
 
       if (!isUpdate) {
-        // После успешного создания, снова получаем полигоны, чтобы отразить нового владельца
-        showMyPolygons(targetUserId || null); // Получаем данные в зависимости от текущего вида
+        showMyPolygons(targetUserId || null); 
       } else {
-        // При обновлении, refetch также необходим, чтобы убедиться, что selectedPolygon обновлен
         showMyPolygons(selectedUserForAdminView ? selectedUserForAdminView.id : null);
-        setSelectedPolygon(null); // Сброс выбранного полигона после сохранения изменений
+        setSelectedPolygon(null); 
         setIsEditingMode(false);
       }
 
     } catch (error) {
-      showToast(`Не удалось ${isUpdate ? 'обновить' : 'сохранить'} полигон на сервере: ${error.message}`, 'error');
-      console.error(`Ошибка при ${isUpdate ? 'обновлении' : 'сохранении'} полигона на сервере:`, error);
+      showToast(`Failed to ${isUpdate ? 'update' : 'save'} polygon on server: ${error.message}`, 'error');
+      console.error(`Error ${isUpdate ? 'updating' : 'saving'} polygon on server:`, error);
     } finally {
       setIsSavingPolygon(false);
     }
-  }, [showToast, handleLogout, navigate, setSelectedPolygon, setIsEditingMode, showMyPolygons, selectedUserForAdminView]); // Добавлены selectedUserForAdminView в зависимости
+  }, [showToast, handleLogout, navigate, setSelectedPolygon, setIsEditingMode, showMyPolygons, selectedUserForAdminView, userRole, saveDemoPolygonsToLocalStorage]); // Added userRole, saveDemoPolygonsToLocalStorage to deps
 
   const startDrawing = () => {
+    // NEW: Limit drawing to one polygon for DEMO user
+    if (userRole === 'DEMO' && polygons.length >= 1) {
+      showToast('В демо-режиме можно нарисовать только один полигон. Пожалуйста, зарегистрируйтесь для создания большего количества.', 'warning');
+      return;
+    }
+
     setIsDrawing(true);
     setSelectedPolygon(null);
     setIsEditingMode(false);
@@ -324,11 +386,11 @@ export default function PolygonDrawMap({ handleLogout }) {
     });
   }, []);
   
-  // Добавьте этот хук useEffect
+  // Add this useEffect hook
   useEffect(() => {
     if (currentAuthenticatedUser) {
-      // Это получит полигоны либо для текущего пользователя (если selectedUserForAdminView равен null),
-      // либо для выбранного пользователя, если ADMIN/SUPER_ADMIN выбрал кого-то.
+      // This will fetch polygons either for the current user (if selectedUserForAdminView is null),
+      // or for the selected user if ADMIN/SUPER_ADMIN has selected someone.
       showMyPolygons(selectedUserForAdminView ? selectedUserForAdminView.id : null);
     }
   }, [currentAuthenticatedUser, showMyPolygons, selectedUserForAdminView]);
@@ -352,53 +414,69 @@ export default function PolygonDrawMap({ handleLogout }) {
 
   const onPolygonComplete = useCallback((coordinates) => {
     const closedCoordinates = ensurePolygonClosed(coordinates);
-    // ✨ ИСПРАВЛЕНО: Генерируем чистый UUID на фронтенде
     const newPolygonId = crypto.randomUUID(); 
     const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
     const newPolygon = {
-      id: newPolygonId, // Используем чистый UUID
+      id: newPolygonId, 
       coordinates: closedCoordinates,
       color: randomColor,
       crop: null,
       name: `Новый полигон ${new Date().toLocaleString()}`,
       comment: null
     };
-    setPolygons((prev) => [...prev, newPolygon]);
+    // REMOVED: setPolygons((prev) => [...prev, newPolygon]); // This caused duplication for DEMO users
     setIsDrawing(false);
     setDrawnPointsCount(0);
     setSelectedPolygon(newPolygon);
     showToast('Полигон нарисован и сохранен локально! Отправка на сервер...', 'info');
     
-    // Передаем targetUserId, если ADMIN выбрал USERа для имперсонации
+    // Pass targetUserId if ADMIN selected a USER for impersonation
     let targetIdForNewPolygon = null;
     if (userRole === 'ADMIN' && selectedUserForAdminView && selectedUserForAdminView.role === 'USER') {
         targetIdForNewPolygon = selectedUserForAdminView.id;
     } else if (userRole === 'SUPER_ADMIN' && selectedUserForAdminView) {
-        // SUPER_ADMIN может создавать для любого выбранного пользователя
+        // SUPER_ADMIN can create for any selected user
         targetIdForNewPolygon = selectedUserForAdminView.id;
     }
-    // Если конкретный пользователь не выбран (или текущий пользователь не ADMIN/SUPER_ADMIN),
-    // targetIdForNewPolygon остается null, и полигон принадлежит текущему аутентифицированному пользователю.
     savePolygonToDatabase(newPolygon, false, targetIdForNewPolygon); 
-  }, [savePolygonToDatabase, showToast, userRole, selectedUserForAdminView]); // Добавлены userRole, selectedUserForAdminView в зависимости
+  }, [savePolygonToDatabase, showToast, userRole, selectedUserForAdminView]); 
 
   const updatePolygonColor = useCallback((polygonId, newColor) => {
     setPolygons((prev) => {
       const updatedPolys = prev.map((p) =>
         p.id === polygonId ? { ...p, color: newColor } : p
       );
+      // If DEMO user, save to localStorage
+      saveDemoPolygonsToLocalStorage(updatedPolys);
       if (selectedPolygon && selectedPolygon.id === polygonId) {
         setSelectedPolygon(updatedPolys.find(p => p.id === polygonId));
       }
       return updatedPolys;
     });
-  }, [selectedPolygon]);
+  }, [selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const deletePolygon = useCallback(async (id) => {
+    // If DEMO user, delete locally and simulate success
+    if (userRole === 'DEMO') {
+      setPolygons((prev) => {
+        const updatedPolys = prev.filter((p) => p.id !== id);
+        saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
+        return updatedPolys;
+      });
+      setSelectedPolygon(null);
+      if (editingMapPolygon && editingMapPolygon.id === id) {
+        setIsEditingMode(false);
+        setEditingMapPolygon(null);
+      }
+      showToast('Полигон удален локально (демо-режим)!', 'success');
+      return; // Exit, as DEMO user does not need to access backend
+    }
+
+    // Logic for non-DEMO users (USER, ADMIN, SUPER_ADMIN)
     const token = localStorage.getItem('token');
     if (!token) {
-      showToast('Ошибка: Токен аутентификации отсутствует. Пожалуйста, войдите в систему.', 'error');
-      console.error('Ошибка: Токен аутентификации отсутствует.');
+      showToast('Error: Authentication token is missing. Please log in.', 'error');
+      console.error('Error: Authentication token is missing.');
       if (handleLogout) {
         handleLogout();
       } else {
@@ -426,7 +504,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         } else if (typeof responseBody === 'string' && responseBody.length > 0) {
           errorMessage = responseBody;
         }
-        showToast(`Ошибка удаления полигона с сервера: ${errorMessage}`, 'error');
+        showToast(`Error deleting polygon from server: ${errorMessage}`, 'error');
         if (response.status === 401 || response.status === 403) {
           if (handleLogout) {
             handleLogout();
@@ -434,16 +512,15 @@ export default function PolygonDrawMap({ handleLogout }) {
             navigate('/login');
           }
         }
-        throw new Error(`Ошибка удаления полигона с сервера: ${response.status} - ${errorMessage}`);
+        throw new Error(`Error deleting polygon from server: ${response.status} - ${errorMessage}`);
       }
       showToast('Полигон успешно удален с сервера!', 'success');
-      // После удаления, снова получаем полигоны, чтобы убедиться, что список актуален
       showMyPolygons(selectedUserForAdminView ? selectedUserForAdminView.id : null);
     } catch (error) {
       showToast(`Не удалось удалить полигон с сервера: ${error.message}`, 'error');
-      console.error('Ошибка при удалении полигона из БД:', error);
+      console.error('Error deleting polygon from DB:', error);
     }
-  }, [editingMapPolygon, showToast, handleLogout, navigate, showMyPolygons, selectedUserForAdminView]); // Добавлены showMyPolygons, selectedUserForAdminView в зависимости
+  }, [editingMapPolygon, showToast, handleLogout, navigate, showMyPolygons, selectedUserForAdminView, userRole, saveDemoPolygonsToLocalStorage]); 
 
   const confirmClearAll = useCallback(() => {
     setShowClearAllConfirm(true);
@@ -451,24 +528,32 @@ export default function PolygonDrawMap({ handleLogout }) {
 
   const cancelClearAll = useCallback(() => {
     setShowClearAllConfirm(false);
-    showToast('Очистка всех полигонов отменена.', 'info');
+    showToast('Clearing all polygons canceled.', 'info');
   }, [showToast]);
 
   const handleClearAllConfirmed = useCallback(async () => {
     setShowClearAllConfirm(false);
-    showToast('Начинаю очистку всех полигонов...', 'info');
+    showToast('Starting to clear all polygons...', 'info');
     setPolygons([]);
-    localStorage.removeItem('savedPolygons');
     setSelectedPolygon(null);
     setIsDrawing(false);
     setIsEditingMode(false);
     setEditingMapPolygon(null);
     editableFGRef.current?.clearLayers();
-    showToast('Все полигоны удалены локально. Отправка запроса на сервер...', 'info');
+
+    // If DEMO user, clear localStorage
+    if (userRole === 'DEMO') {
+      localStorage.removeItem('demoPolygons');
+      showToast('All polygons deleted locally (demo mode)!', 'success');
+      return; // Exit, as DEMO user does not need to access backend
+    }
+
+    // Logic for non-DEMO users (USER, ADMIN, SUPER_ADMIN)
+    showToast('All polygons deleted locally. Sending request to server...', 'info');
     const token = localStorage.getItem('token'); 
     if (!token) {
-      showToast('Ошибка: Токен аутентификации отсутствует. Пожалуйста, войдите в систему.', 'error');
-      console.error('Ошибка: Токен аутентификации отсутствует.');
+      showToast('Error: Authentication token is missing. Please log in.', 'error');
+      console.error('Error: Authentication token is missing.');
       if (handleLogout) {
         handleLogout();
       } else {
@@ -490,9 +575,9 @@ export default function PolygonDrawMap({ handleLogout }) {
             if (typeof responseBody === 'object' && responseBody !== null && responseBody.message) {
               errorMessage = responseBody.message;
             } else if (typeof responseBody === 'string' && responseBody.length > 0) {
-              errorMessage = responseBody;
+              errorMessage = data;
             }
-            showToast(`Ошибка очистки всех полигонов с сервера: ${errorMessage}`, 'error');
+            showToast(`Error clearing all polygons from server: ${errorMessage}`, 'error');
             if (response.status === 401 || response.status === 403) {
               if (handleLogout) {
                 handleLogout();
@@ -500,81 +585,87 @@ export default function PolygonDrawMap({ handleLogout }) {
                 navigate('/login');
               }
             }
-            throw new Error(`Ошибка очистки всех полигонов с сервера: ${response.status} - ${errorMessage}`);
+            throw new Error(`Error clearing all polygons from server: ${response.status} - ${errorMessage}`);
         }
-        showToast('Все полигоны успешно удалены с сервера!', 'success');
-        // После очистки, снова получаем полигоны, чтобы убедиться, что список актуален
+        showToast('All polygons successfully deleted from server!', 'success');
         showMyPolygons(selectedUserForAdminView ? selectedUserForAdminView.id : null);
     } catch (error) {
         showToast(`Не удалось очистить все полигоны с сервера: ${error.message}`, 'error');
-        console.error('Ошибка при очистке всех полигонов из БД:', error);
+        console.error('Error clearing all polygons from DB:', error);
     } finally {
       setIsSavingPolygon(false);
     }
-  }, [showToast, handleLogout, navigate, showMyPolygons, selectedUserForAdminView]); // Добавлены showMyPolygons, selectedUserForAdminView в зависимости
+  }, [showToast, handleLogout, navigate, showMyPolygons, selectedUserForAdminView, userRole]); 
 
   const clearAll = useCallback(() => {
     if (polygons.length === 0) {
-      showToast('На карте нет полигонов для удаления.', 'info');
+      showToast('No polygons on the map to delete.', 'info');
       return;
     }
     confirmClearAll();
   }, [polygons.length, confirmClearAll, showToast]);
 
   const clearAllCrops = useCallback(() => {
-    setPolygons((prev) => prev.map((p) => ({ ...p, crop: null, comment: null, color: '#0000FF' })));
+    setPolygons((prev) => {
+      const updatedPolys = prev.map((p) => ({ ...p, crop: null, comment: null, color: '#0000FF' }));
+      saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
+      return updatedPolys;
+    });
     if (selectedPolygon) {
       setSelectedPolygon(prev => ({ ...prev, crop: null, comment: null, color: '#0000FF' }));
     }
     showToast('Все культуры, комментарии и цвета полигонов сброшены. Синхронизируйте с сервером вручную, если необходимо.', 'info');
-  }, [showToast, selectedPolygon]);
+  }, [showToast, selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const updatePolygonCrop = useCallback((polygonId, newCrop) => {
     setPolygons((prev) => {
       const updatedPolys = prev.map((p) => (p.id === polygonId ? { ...p, crop: newCrop } : p));
+      saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
       if (selectedPolygon && selectedPolygon.id === polygonId) {
         setSelectedPolygon(updatedPolys.find(p => p.id === polygonId));
       }
       return updatedPolys;
     });
-  }, [selectedPolygon]);
+  }, [selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const updatePolygonName = useCallback((polygonId, newName) => {
     setPolygons((prev) => {
       const updatedPolys = prev.map((p) =>
         p.id === polygonId ? { ...p, name: newName } : p
       );
+      saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
       if (selectedPolygon && selectedPolygon.id === polygonId) {
         setSelectedPolygon(updatedPolys.find(p => p.id === polygonId));
       }
       return updatedPolys;
     });
-  }, [selectedPolygon]);
+  }, [selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const updatePolygonComment = useCallback((polygonId, newComment) => {
     setPolygons((prev) => {
       const updatedPolys = prev.map((p) =>
         p.id === polygonId ? { ...p, comment: newComment } : p
       );
+      saveDemoPolygonsToLocalStorage(updatedPolys); // Save to localStorage
       if (selectedPolygon && selectedPolygon.id === polygonId) {
         setSelectedPolygon(updatedPolys.find(p => p.id === polygonId));
       }
       return updatedPolys;
     });
-  }, [selectedPolygon]);
+  }, [selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const onSelectAnalysisForPolygon = useCallback((polygonData, analysisType) => {
     if (selectedPolygon && selectedPolygon.id === polygonData.id && activeAnalysisType === analysisType) {
-      setActiveAnalysisType('none'); // Выключаем слой, если он уже активен для того же полигона
-      showToast(`Слой "${analysisType}" для полигона выключен.`, 'info');
+      setActiveAnalysisType('none'); // Turn off layer if already active for the same polygon
+      showToast(`Layer "${analysisType}" for polygon turned off.`, 'info');
     } else {
-      setSelectedPolygon(polygonData); // Устанавливаем выбранный полигон
-      setActiveAnalysisType(analysisType); // Устанавливаем тип анализа
+      setSelectedPolygon(polygonData); // Set selected polygon
+      setActiveAnalysisType(analysisType); // Set analysis type
 
-      // Устанавливаем диапазон дат как объекты Date
+      // Set date range as Date objects
       const today = new Date();
       const twoMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, today.getDate());
-      setAnalysisDateRange([twoMonthsAgo, today]); // Передаем объекты Date
+      setAnalysisDateRange([twoMonthsAgo, today]); // Pass Date objects
       showToast(`Загрузка слоя "${analysisType}" для полигона...`, 'info');
     }
   }, [selectedPolygon, activeAnalysisType, showToast]);
@@ -635,7 +726,7 @@ export default function PolygonDrawMap({ handleLogout }) {
       }
 
       if (!updatedCoordinates || updatedCoordinates.length === 0) {
-          console.error("handleStopAndSaveEdit: Критическая ошибка: Не удалось получить обновленные координаты для сохранения.");
+          console.error("handleStopAndSaveEdit: Critical error: Не удалось получить обновленные координаты для сохранения.");
           showToast('Ошибка: Не удалось получить координаты полигона для сохранения.', 'error');
           return;
       }
@@ -648,7 +739,11 @@ export default function PolygonDrawMap({ handleLogout }) {
               coordinates: updatedCoordinates, 
           }; 
           
-          setPolygons(prev => prev.map(p => p.id === updatedPoly.id ? updatedPoly : p)); 
+          setPolygons(prev => {
+            const newPolygons = prev.map(p => p.id === updatedPoly.id ? updatedPoly : p);
+            saveDemoPolygonsToLocalStorage(newPolygons); // Save to localStorage
+            return newPolygons;
+          }); 
           if (selectedPolygon && selectedPolygon.id === updatedPoly.id) { 
             setSelectedPolygon(updatedPoly); 
           } 
@@ -673,7 +768,7 @@ export default function PolygonDrawMap({ handleLogout }) {
     } else { 
       showToast('Нет активных режимов для сохранения.', 'info'); 
     } 
-  }, [isDrawing, stopDrawing, isEditingMode, editingMapPolygon, polygons, savePolygonToDatabase, showToast, selectedPolygon]);
+  }, [isDrawing, stopDrawing, isEditingMode, editingMapPolygon, polygons, savePolygonToDatabase, showToast, selectedPolygon, saveDemoPolygonsToLocalStorage]);
 
   const onPolygonEdited = useCallback(async (e) => {
     console.log("onPolygonEdited: Событие редактирования полигона на карте.");
@@ -684,18 +779,20 @@ export default function PolygonDrawMap({ handleLogout }) {
             console.log("onPolygonEdited: Новые координаты после редактирования:", newCoordinates);
 
             setPolygons(prevPolygons => {
-                return prevPolygons.map(p => {
+                const newPolygons = prevPolygons.map(p => {
                     if (editingMapPolygon && p.id === editingMapPolygon.id) {
                         return { ...p, coordinates: newCoordinates };
                     }
                     return p;
                 });
+                saveDemoPolygonsToLocalStorage(newPolygons); // Save to localStorage
+                return newPolygons;
             });
             setEditingMapPolygon(prev => prev ? { ...prev, coordinates: newCoordinates } : null);
         }
     });
     showToast('Форма полигона изменена. Нажмите "Сохранить" для сохранения изменений.', 'info');
-  }, [editingMapPolygon, setPolygons, setEditingMapPolygon, showToast]);
+  }, [editingMapPolygon, setPolygons, setEditingMapPolygon, showToast, saveDemoPolygonsToLocalStorage]);
 
   const fetchAllUsers = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -733,13 +830,13 @@ export default function PolygonDrawMap({ handleLogout }) {
       console.error("Ошибка при загрузке всех пользователей:", error);
       setAllUsers([]);
     }
-  }, [BASE_API_URL, userRole]); // Добавлен userRole в зависимости
+  }, [BASE_API_URL, userRole]); 
 
   const handleUpdateSelectedUserEmail = useCallback(async (userId, newEmail) => {
     showToast(`Attempting to update user ${userId} email to ${newEmail}...`, 'info');
     const token = localStorage.getItem('token');
     if (!token) {
-      showToast('Error: Authentication token is missing. Please log in again.', 'error');
+      showToast('Error: Authentication token is missing. Please log in.', 'error');
       if (handleLogout) handleLogout();
       else navigate('/login');
       return;
@@ -751,7 +848,7 @@ export default function PolygonDrawMap({ handleLogout }) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        // Отправляем newEmail как простую строку без JSON.stringify
+        // Send newEmail as a plain string without JSON.stringify
         body: newEmail, 
       });
 
@@ -766,7 +863,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         throw new Error(`Error updating email: ${response.status} - ${errorMessage}`);
       }
       showToast(`User ${userId} email successfully updated to ${newEmail}!`, 'success');
-      // Обновляем email в selectedUserForAdminView и состоянии allUsers
+      // Update email in selectedUserForAdminView and allUsers state
       setAllUsers(prevUsers => prevUsers.map(user => 
         user.id === userId ? { ...user, email: newEmail } : user
       ));
@@ -780,12 +877,12 @@ export default function PolygonDrawMap({ handleLogout }) {
     }
   }, [showToast, handleLogout, navigate, selectedUserForAdminView]);
 
-  // ✨ НОВАЯ ФУНКЦИЯ: Обновление роли пользователя
+  // ✨ NEW FUNCTION: Update user role
   const handleUpdateUserRole = useCallback(async (userId, newRole) => {
     showToast(`Attempting to update user ${userId} role to ${newRole}...`, 'info');
     const token = localStorage.getItem('token');
     if (!token) {
-      showToast('Error: Authentication token is missing. Please log in again.', 'error');
+      showToast('Error: Authentication token is missing. Please log in.', 'error');
       if (handleLogout) handleLogout();
       else navigate('/login');
       return;
@@ -811,7 +908,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         throw new Error(`Error updating role: ${response.status} - ${errorMessage}`);
       }
       showToast(`User ${userId} role successfully updated to ${newRole}!`, 'success');
-      // Обновляем роль в allUsers и selectedUserForAdminView
+      // Update role in allUsers and selectedUserForAdminView
       setAllUsers(prevUsers => prevUsers.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
       ));
@@ -825,11 +922,11 @@ export default function PolygonDrawMap({ handleLogout }) {
   }, [showToast, handleLogout, navigate, selectedUserForAdminView]);
 
 
-  // useEffect для инициализации роли пользователя и данных
+  // useEffect for user role and data initialization
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-        // Если токена нет, сразу перенаправляем на логин
+        // If token is missing, redirect to login immediately
         if (handleLogout) {
             handleLogout();
         } else {
@@ -840,36 +937,33 @@ export default function PolygonDrawMap({ handleLogout }) {
 
     try {
         const decodedToken = jwtDecode(token);
-        console.log("Decoded Token:", decodedToken); // Логирование декодированного токена
+        console.log("Decoded Token:", decodedToken); // Log decoded token
         const roles = decodedToken.roles || []; 
         
-        // ✨ ИСПРАВЛЕНО: Устанавливаем ID пользователя непосредственно из токена
-        // Пытаемся получить числовой ID.
         let userIdFromToken = null;
-        // Проверяем decodedToken.id и decodedToken.userId на наличие и числовое значение
         if (decodedToken.id !== undefined && decodedToken.id !== null && !isNaN(Number(decodedToken.id))) {
             userIdFromToken = Number(decodedToken.id);
         } else if (decodedToken.userId !== undefined && decodedToken.userId !== null && !isNaN(Number(decodedToken.userId))) {
             userIdFromToken = Number(decodedToken.userId);
         } else {
-            // Если числового ID нет, это указывает на проблему с JWT или бэкендом.
-            // В этом случае, мы не можем использовать email для API, который ожидает число.
-            // Устанавливаем ID в null, чтобы showMyPolygons вызывал /api/polygons/user (без ID в URL)
             console.warn("JWT does not contain a numerical 'id' or 'userId' claim. Cannot use 'sub' (email) as numerical ID for API requests. Setting currentAuthenticatedUser.id to null.");
             showToast('Warning: User ID is not numerical. Polygon loading/editing might be limited.', 'warning');
         }
 
         setCurrentAuthenticatedUser({ id: userIdFromToken, email: decodedToken.sub, role: roles[0] }); 
 
-        // Устанавливаем роль пользователя ОДИН РАЗ
         if (roles.includes('ROLE_SUPER_ADMIN')) {
             setUserRole('SUPER_ADMIN');
         } else if (roles.includes('ROLE_ADMIN')) {
             setUserRole('ADMIN');
+        } else if (roles.includes('ROLE_DEMO')) { // Added for DEMO role
+            setUserRole('DEMO');
+            // Do NOT clear demoChatHistories here, only on explicit logout
+            // Do NOT clear demoPolygons here, it's handled by PolygonDrawMap
+            showToast('Демо-режим: Ваши полигоны будут сохраняться локально и удаляться при выходе.', 'info');
         } else {
             setUserRole('USER');
         }
-        // Загружаем всех пользователей только если ADMIN или SUPER_ADMIN
         if (roles.includes('ROLE_ADMIN') || roles.includes('ROLE_SUPER_ADMIN')) {
           fetchAllUsers();
         }
@@ -883,94 +977,58 @@ export default function PolygonDrawMap({ handleLogout }) {
             navigate('/login');
         }
     }
-  }, [handleLogout, navigate, showToast, fetchAllUsers]); // Зависимости: стабильные функции и пропсы, которые не меняются при каждом рендере
+  }, [handleLogout, navigate, showToast, fetchAllUsers]); 
 
 
-  // useEffect для загрузки полигонов, зависит от userRole, currentAuthenticatedUser, selectedUserForAdminView
+  // useEffect for loading polygons, depends on userRole, currentAuthenticatedUser, selectedUserForAdminView
   useEffect(() => {
-    // Этот эффект должен запускаться только после того, как userRole и currentAuthenticatedUser будут установлены
-    // (currentAuthenticatedUser.id может быть null для USER, если ID не в токене)
     if (!userRole || !currentAuthenticatedUser) {
-        console.log("PolygonDrawMap: Отложенная загрузка полигонов: userRole или currentAuthenticatedUser еще не установлены.");
+        console.log("PolygonDrawMap: Deferred polygon loading: userRole or currentAuthenticatedUser not yet set.");
         return;
     }
 
-    let loadedFromLocalStorage = false;
-    try {
-      const storedPolygons = localStorage.getItem('savedPolygons');
-      if (storedPolygons !== null && storedPolygons !== '[]') {
-        const parsedPolygons = JSON.parse(storedPolygons);
-        if (Array.isArray(parsedPolygons) && parsedPolygons.every(p => p && p.coordinates && Array.isArray(p.coordinates) && p.coordinates.length >= 3 && 'comment' in p && 'color' in p)) {
-          const closedPolygons = parsedPolygons.map(p => ({
-            ...p,
-            coordinates: ensurePolygonClosed(p.coordinates)
-          }));
-          setPolygons(closedPolygons);
-          showToast('Polygons loaded from local storage.', 'success');
-          loadedFromLocalStorage = true;
-        } else {
-          console.warn('Invalid polygons data format in localStorage. Clearing and attempting to load from server.', parsedPolygons);
-          localStorage.removeItem('savedPolygons');
-        }
-      }
-    } catch (error) {
-      console.error("Critical error parsing polygons from localStorage. Clearing and attempting to load from server:", error);
-      showToast('Critical error loading polygons from local storage, attempting to load from server.', 'error');
-      localStorage.removeItem('savedPolygons');
+    // Polygon loading logic is now entirely within showMyPolygons
+    // This useEffect now simply calls showMyPolygons
+    if (userRole === 'USER') { 
+      showMyPolygons(null); 
+    } else if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+      const idToFetch = selectedUserForAdminView 
+        ? Number(selectedUserForAdminView.id) 
+        : (currentAuthenticatedUser.id !== null && !isNaN(Number(currentAuthenticatedUser.id)) ? Number(currentAuthenticatedUser.id) : null);
+      showMyPolygons(idToFetch);
+    } else if (userRole === 'DEMO') { // Added for DEMO
+        showMyPolygons(null); // Call showMyPolygons for DEMO, which now handles localStorage
     }
-
-    // Загружаем полигоны только если userRole и currentAuthenticatedUser уже установлены
-    if (!loadedFromLocalStorage) {
-      if (userRole === 'USER') { 
-        // Для USER всегда вызываем API без ID в URL. Бэкенд определит пользователя по токену.
-        showMyPolygons(null); 
-      } else if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
-        // Для ADMIN/SUPER_ADMIN: если выбран пользователь, используем его ID; иначе - свой.
-        // Убедимся, что ID числовой, если он есть.
-        const idToFetch = selectedUserForAdminView 
-          ? Number(selectedUserForAdminView.id) 
-          : (currentAuthenticatedUser.id !== null && !isNaN(Number(currentAuthenticatedUser.id)) ? Number(currentAuthenticatedUser.id) : null);
-        showMyPolygons(idToFetch);
-      }
-    }
-  }, [userRole, currentAuthenticatedUser, selectedUserForAdminView, showMyPolygons, showToast]); // Зависимости для загрузки полигонов
+  }, [userRole, currentAuthenticatedUser, selectedUserForAdminView, showMyPolygons]); 
 
 
-  // useEffect для обновления currentAuthenticatedUser.id из allUsers
-  // Этот useEffect теперь будет работать только для ADMIN/SUPER_ADMIN,
-  // так как для USER ID уже должен быть установлен из токена.
+  // useEffect for updating currentAuthenticatedUser.id from allUsers
   useEffect(() => {
     if (currentAuthenticatedUser && currentAuthenticatedUser.email && allUsers.length > 0) {
-      // Ищем ID текущего пользователя в списке всех пользователей
       const foundUser = allUsers.find(user => user.email === currentAuthenticatedUser.email);
-      // Обновляем ID, только если он изменился и найденный ID является числом
       if (foundUser && foundUser.id !== currentAuthenticatedUser.id && !isNaN(Number(foundUser.id))) {
-        console.log(`PolygonDrawMap: Обновляем currentAuthenticatedUser ID с: ${currentAuthenticatedUser.id} на: ${Number(foundUser.id)}`);
+        console.log(`PolygonDrawMap: Обновляем currentAuthenticatedUser ID from: ${currentAuthenticatedUser.id} to: ${Number(foundUser.id)}`);
         setCurrentAuthenticatedUser(prev => ({ ...prev, id: Number(foundUser.id) }));
       }
     }
-  }, [allUsers, currentAuthenticatedUser]); // Зависим от allUsers и объекта currentAuthenticatedUser
+  }, [allUsers, currentAuthenticatedUser]); 
 
 
-  // useEffect: Обновление selectedPolygon, когда обновляется список polygons
+  // useEffect: Update selectedPolygon when polygons list is updated
   useEffect(() => {
-    // Если есть выбранный полигон и список полигонов был обновлен
     if (selectedPolygon && polygons.length > 0) {
-      // Ищем обновленную версию выбранного полигона в новом списке
       const updatedSelected = polygons.find(p => p.id === selectedPolygon.id);
 
-      // Если нашли обновленный полигон и его ownerId отличается (или другие критичные поля)
-      // или если ownerId был null и теперь не null
       if (updatedSelected && (updatedSelected.ownerId !== selectedPolygon.ownerId || selectedPolygon.ownerId === null)) {
-        console.log("PolygonDrawMap: Обновляем selectedPolygon.ownerId с:", selectedPolygon.ownerId, "на:", updatedSelected.ownerId);
+        console.log("PolygonDrawMap: Updating selectedPolygon.ownerId from:", selectedPolygon.ownerId, "to:", updatedSelected.ownerId);
         setSelectedPolygon(updatedSelected);
       }
     }
-  }, [polygons, selectedPolygon, setSelectedPolygon]); // Зависим от polygons и selectedPolygon
+  }, [polygons, selectedPolygon, setSelectedPolygon]); 
 
-  // useEffect для логирования массива polygons после его обновления
+  // useEffect for logging polygons array after update
   useEffect(() => {
-    console.log("PolygonDrawMap: Состояние polygons обновлено:", polygons);
+    console.log("PolygonDrawMap: Polygons state updated:", polygons);
     polygons.forEach(p => {
       console.log(`  Polygon ID: ${p.id}, Owner ID: ${p.ownerId}, Owner Role: ${p.ownerRole}`);
     });
@@ -982,23 +1040,51 @@ export default function PolygonDrawMap({ handleLogout }) {
     const user = allUsers.find(u => String(u.id) === userId); 
     setSelectedUserForAdminView(user || null);
 
-    // Если пользователь выбран, загружаем его полигоны.
-    // Если "Все пользователи" (value=""), загружаем полигоны текущего администратора/супер-администратора.
     if (user) {
         showToast(`Просмотр полигонов для пользователя: ${user.email}`, 'info');
-        // Убедимся, что ID пользователя является числом перед передачей
         showMyPolygons(Number(user.id));
     } else {
-        // Убедимся, что currentAuthenticatedUser.id доступен и является числом, прежде чем вызывать showMyPolygons
         if (currentAuthenticatedUser?.id !== null && !isNaN(Number(currentAuthenticatedUser.id))) {
             showToast('Просмотр полигонов текущего администратора.', 'info');
             showMyPolygons(Number(currentAuthenticatedUser.id));
         } else {
-            console.warn("handleUserSelectForAdminView: ID текущего аутентифицированного пользователя недоступен или не числовой для загрузки полигонов администратора.");
-            showToast('Ошибка: Не удалось определить ID текущего администратора для загрузки полигонов.', 'error');
+            console.warn("handleUserSelectForAdminView: Current authenticated user ID is unavailable or not numerical for loading administrator polygons.");
+            showToast('Error: Failed to determine current administrator ID for loading polygons.', 'error');
         }
     }
   }, [allUsers, showMyPolygons, showToast, currentAuthenticatedUser]);
+
+  // NEW FUNCTION: flyToPolygon
+  const flyToPolygon = useCallback((polygon) => {
+    if (mapInstance && polygon && polygon.coordinates && polygon.coordinates.length > 0) {
+      // Calculate centroid (simple average for now)
+      const outerRing = Array.isArray(polygon.coordinates[0][0]) 
+                            ? polygon.coordinates[0] 
+                            : polygon.coordinates; 
+      
+      const validCoords = outerRing.filter(coord => {
+        if (!Array.isArray(coord) || coord.length !== 2) {
+          return false;
+        }
+        const lat = parseFloat(coord[0]);
+        const lng = parseFloat(coord[1]);
+        return !isNaN(lat) && !isNaN(lng);
+      }).map(coord => [parseFloat(coord[0]), parseFloat(coord[1])]);
+
+      if (validCoords.length > 0) {
+        const latSum = validCoords.reduce((sum, coord) => sum + coord[0], 0);
+        const lngSum = validCoords.reduce((sum, coord) => sum + coord[1], 0);
+        const center = [latSum / validCoords.length, lngSum / validCoords.length];
+        
+        mapInstance.flyTo(center, 15); // Fly to center with zoom level 15
+        showToast(`Перемещение к полигону: ${polygon.name}`, 'info');
+      } else {
+        showToast(`Невозможно переместиться к полигону "${polygon.name}": некорректные координаты.`, 'error');
+      }
+    } else {
+      showToast('Экземпляр карты или данные полигона недоступны для перемещения.', 'error');
+    }
+  }, [mapInstance, showToast]);
 
 
   const finalSelectedPolygonData = selectedPolygon;
@@ -1060,6 +1146,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         onUpdateSelectedUserEmail={handleUpdateSelectedUserEmail}
         showToast={showToast}
         currentAuthenticatedUser={currentAuthenticatedUser}
+        flyToPolygon={flyToPolygon}
       />
 
       <ToastNotification
@@ -1087,7 +1174,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         </div>
       )}
 
-      {/* UserSelectionBlock теперь отображается для ADMIN и SUPER_ADMIN */}
+      {/* UserSelectionBlock is now displayed for ADMIN and SUPER_ADMIN */}
       {(userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') && (
         <UserSelectionBlock
           userRole={userRole}
