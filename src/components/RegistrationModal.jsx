@@ -12,7 +12,6 @@ export default function RegistrationModal({ onClose, onSuccess }) {
   const [error, setError] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true); // По умолчанию на SIGN IN
-  // const [isDemoMode, setIsDemoMode] = useState(false); // УДАЛЕНО: НОВОЕ СОСТОЯНИЕ: для демо-режима
   const [isRecovering, setIsRecovering] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState(0);
   const [recoveryCode, setRecoveryCode] = useState("");
@@ -60,18 +59,11 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     setRepeatNewPassword("");
   };
 
-  const handleTabClick = (mode) => { // ИЗМЕНЕНО: Удален параметр isDemo
+  const handleTabClick = (mode) => { 
     setIsLoginMode(mode);
-    // setIsDemoMode(isDemo); // УДАЛЕНО
     setIsRecovering(false);
     setRecoveryStep(0);
     resetFormFields();
-
-    // УДАЛЕНО: Логика предзаполнения для демо-режима
-    // if (isDemo) {
-    //   setLogin("TEST"); 
-    //   setPassword("TEST");
-    // }
   };
 
   async function handleRegister(e) {
@@ -159,41 +151,6 @@ export default function RegistrationModal({ onClose, onSuccess }) {
       setError("Ошибка подключения к серверу");
     }
   }
-
-  // УДАЛЕНО: НОВАЯ ФУНКЦИЯ: Обработка входа для демо-пользователя
-  // async function handleDemoLogin(e) {
-  //   e.preventDefault();
-  //   setError("");
-  //   if (login !== "TEST" || password !== "TEST") {
-  //     setError("Для демо-доступа используйте Логин: TEST, Пароль: TEST");
-  //     return;
-  //   }
-  //   try {
-  //     const response = await fetch("http://localhost:8080/api/v1/auth/demo/login", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         username: login, 
-  //         password: password
-  //       })
-  //     });
-  //     const data = await response.json();
-  //     if (!response.ok) {
-  //       setError(data.message || "Ошибка демо-входа");
-  //       return;
-  //     }
-  //     if (data.token) {
-  //       localStorage.setItem('token', data.token);
-  //       localStorage.setItem('role', "ROLE_DEMO"); 
-  //     }
-  //     setIsRegistered(true);
-  //     onClose(); 
-  //     onSuccess?.("ROLE_DEMO"); 
-  //   } catch (err) {
-  //     console.error("Ошибка демо-авторизации:", err);
-  //     setError("Ошибка подключения к серверу");
-  //   }
-  // }
 
   async function handleRecoverPassword(e) {
     e.preventDefault();
@@ -297,7 +254,6 @@ export default function RegistrationModal({ onClose, onSuccess }) {
 
   return (
     <div className="registration-modal">
-      {/* ✨ УДАЛЕНО: onClick={onClose} из modal-overlay */}
       <div className="modal-overlay"></div>
       <div className="registration-wrapper">
         <div className="registration-content">
@@ -305,7 +261,6 @@ export default function RegistrationModal({ onClose, onSuccess }) {
             <div className="auth-tabs">
               <div className={`auth-tab ${!isLoginMode ? "active" : ""}`} onClick={() => handleTabClick(false)}>SIGN UP</div>
               <div className={`auth-tab ${isLoginMode ? "active" : ""}`} onClick={() => handleTabClick(true)}>SIGN IN</div>
-              {/* УДАЛЕНО: <div className={`auth-tab ${isDemoMode ? "active" : ""}`} onClick={() => handleTabClick(true, true)}>DEMO LOGIN</div> */}
             </div>
           )}
 
@@ -351,20 +306,6 @@ export default function RegistrationModal({ onClose, onSuccess }) {
               <button type="submit" className="submit-btn">LOGIN</button>
             </form>
           )}
-
-          {/* УДАЛЕНО: НОВАЯ ФОРМА: для DEMO LOGIN */}
-          {/* {isDemoMode && !isRecovering && ( 
-            <form className="registration-form" onSubmit={handleDemoLogin}>
-              <div className="input-group">
-                <input type="text" placeholder="Login (TEST)" value={login} onChange={(e) => setLogin(e.target.value)} required />
-              </div>
-              <div className="input-group">
-                <input type="password" placeholder="Password (TEST)" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-              {error && <div className="error">{error}</div>}
-              <button type="submit" className="submit-btn">LOGIN</button>
-            </form>
-          )} */}
 
           {isRecovering && (
             <form className="registration-form" onSubmit={handleRecoverPassword}>

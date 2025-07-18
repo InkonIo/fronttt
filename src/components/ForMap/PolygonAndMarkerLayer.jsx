@@ -4,7 +4,7 @@ import { Polygon, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
 export default function PolygonAndMarkerLayer({ 
-  polygons, 
+  polygons = [], 
   calculateArea, 
   formatArea, 
   selectedPolygon, // Теперь это объект полигона или null

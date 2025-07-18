@@ -53,7 +53,7 @@ export default function ProfileHeader({ onLogout = () => {}, userRole }) {
               setActiveSection('home');
             }}
             className={`profile-header-nav-link ${
-              location.pathname === '/' || activeSection === 'home' ? 'active' : ''
+              location.pathname === '/home' || activeSection === 'home' ? 'active' : ''
             }`}
           >
             Главная
