@@ -361,9 +361,9 @@ export default function PolygonDrawMap({ handleLogout }) {
   }, [showToast, handleLogout, navigate, setSelectedPolygon, setIsEditingMode, showMyPolygons, selectedUserForAdminView, userRole, saveDemoPolygonsToLocalStorage]); // Added userRole, saveDemoPolygonsToLocalStorage to deps
 
   const startDrawing = () => {
-    // NEW: Limit drawing to one polygon for DEMO user
-    if (userRole === 'DEMO' && polygons.length >= 1) {
-      showToast('В демо-режиме можно нарисовать только один полигон. Пожалуйста, зарегистрируйтесь для создания большего количества.', 'warning');
+    // NEW: Limit drawing to 30 polygons for DEMO user
+    if (userRole === 'DEMO' && polygons.length >= 30) { // Changed limit to 30
+      showToast('В демо-режиме можно нарисовать до 30 полигонов. Пожалуйста, зарегистрируйтесь для создания большего количества.', 'warning'); // Updated message
       return;
     }
 

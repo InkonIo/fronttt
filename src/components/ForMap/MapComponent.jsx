@@ -254,13 +254,11 @@ export default function MapComponent({
         <>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             zIndex={1} // Базовый слой
           />
           {/* Слой границ и названий для OpenStreetMap */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             zIndex={2} // Поверх OpenStreetMap, но под аналитикой
           />
         </>
@@ -280,7 +278,6 @@ export default function MapComponent({
           {/* Слой границ и названий для Sentinel */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             zIndex={101} // Поверх Sentinel, но под аналитикой
           />
         </>
@@ -291,14 +288,12 @@ export default function MapComponent({
         <>
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             maxZoom={19}
             zIndex={1} // Базовый слой
           />
           {/* НОВЫЙ СЛОЙ: Добавляем слой границ и названий поверх ESRI World Imagery */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>, <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             zIndex={2} // Поверх ESRI World Imagery, но под аналитикой
           />
         </>

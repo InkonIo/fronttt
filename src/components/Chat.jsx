@@ -7,7 +7,7 @@ import { jwtDecode } from 'jwt-decode'; // Import jwtDecode
 const MAX_MESSAGES_IN_HISTORY = 20; // This value can be adjusted
 
 // NEW: Limit for chat messages in DEMO mode (user message + AI response = 2 messages)
-const DEMO_CHAT_MESSAGE_LIMIT = 5; // 5 user messages, meaning 5 user-AI pairs
+const DEMO_CHAT_MESSAGE_LIMIT = 100; // Changed limit to 100
 
 // New base URL for your deployed backend
 const BASE_API_URL = 'http://localhost:8080';
@@ -78,34 +78,49 @@ export default function ChatPage({ handleLogout }) { // Added handleLogout prop
   const sendMessageToBackend = useCallback(async (textToSend, polygonId) => {
     setIsTyping(true);
 
-    // If DEMO user, simulate AI response and save locally
+    // Optimistically add user message to UI
+    setCurrentMessages(prev => [...prev, { sender: 'user', text: textToSend }]);
+    setChatHistories(prev => ({
+      ...prev,
+      [polygonId]: [...(prev[polygonId] || []), { sender: 'user', text: textToSend }]
+    }));
+
+    // If DEMO user, check limit first
     if (userRole === 'DEMO') {
         const currentPolygonHistory = chatHistoriesRef.current[polygonId] || [];
         // Check if the demo chat limit has been reached (DEMO_CHAT_MESSAGE_LIMIT user messages)
         if (currentPolygonHistory.filter(msg => msg.sender === 'user').length >= DEMO_CHAT_MESSAGE_LIMIT) {
+            // Rollback optimistic update for user message as we are not sending it
+            setChatHistories(prev => ({
+                ...prev,
+                [polygonId]: (prev[polygonId] || []).slice(0, -1)
+            }));
+            setCurrentMessages(prev => prev.slice(0, -1));
+
             setCurrentMessages(prev => [...prev, { sender: 'ai', text: `В демо-режиме количество сообщений ограничено ${DEMO_CHAT_MESSAGE_LIMIT}. Пожалуйста, зарегистрируйтесь для неограниченного доступа.` }]);
             setIsTyping(false);
             setMessage('');
-            return;
+            return; // STOP here if limit reached
         }
-
-        setCurrentMessages(prev => [...prev, { sender: 'user', text: textToSend }]);
-        const demoResponse = `Привет от АгроЧат Демо! Вы сказали: "${textToSend}". В демо-режиме я не могу подключиться к реальному ИИ, но я здесь, чтобы показать, как это работает!`;
-        setChatHistories(prev => {
-            const newHistory = [...(prev[polygonId] || []), { sender: 'user', text: textToSend }, { sender: 'ai', text: demoResponse }];
-            localStorage.setItem('demoChatHistories', JSON.stringify({ ...prev, [polygonId]: newHistory }));
-            return { ...prev, [polygonId]: newHistory };
-        });
-        setCurrentMessages(prev => [...prev, { sender: 'ai', text: demoResponse }]);
-        setIsTyping(false);
-        setMessage('');
-        return;
+        // If not limited, proceed to backend call for DEMO user
     }
 
-    // Logic for non-DEMO users
+    // Logic for all users (including DEMO if not limited)
+    // ✨ ДОБАВЛЕНО: Логирование перед отправкой запроса
+    console.log("sendMessageToBackend: jwtToken =", jwtToken);
+    console.log("sendMessageToBackend: userRole =", userRole);
+    console.log("sendMessageToBackend: selectedPolygonId =", polygonId);
+
+
     if (!jwtToken || !polygonId) {
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: 'Ошибка: Вы не авторизованы или полигон не выбран.' }]);
       setIsTyping(false);
+      // Rollback optimistic update on error
+      setChatHistories(prev => ({
+        ...prev,
+        [polygonId]: (prev[polygonId] || []).slice(0, -1)
+      }));
+      setCurrentMessages(prev => prev.slice(0, -1));
       return;
     }
 
@@ -116,7 +131,6 @@ export default function ChatPage({ handleLogout }) { // Added handleLogout prop
     const selectedPolygon = userPolygons.find(p => p.id === polygonId);
     let polygonContext = "";
     if (selectedPolygon) {
-        // Changed system message to more explicitly instruct AI to use geodata
         polygonContext = `Ты работаешь с полигоном. Вот его данные: Название: "${selectedPolygon.name}", Культура: "${selectedPolygon.crop}". Комментарий: "${selectedPolygon.comment || 'нет'}".`;
         
         // Add geodata if available.
@@ -191,13 +205,6 @@ export default function ChatPage({ handleLogout }) { // Added handleLogout prop
     // Add new user message
     messagesForOpenAI.push({ role: 'user', content: textToSend });
 
-    // Optimistically add user message to UI
-    setCurrentMessages(prev => [...prev, { sender: 'user', text: textToSend }]);
-    setChatHistories(prev => ({
-      ...prev,
-      [polygonId]: [...(prev[polygonId] || []), { sender: 'user', text: textToSend }]
-    }));
-
     try {
       const res = await fetch(`${BASE_API_URL}/api/chat/polygons/${polygonId}/messages`, { // Using BASE_API_URL
         method: 'POST',
@@ -231,10 +238,15 @@ export default function ChatPage({ handleLogout }) { // Added handleLogout prop
 
       const botResponse = data.error ? data.error : data.reply;
 
-      setChatHistories(prev => ({
-        ...prev,
-        [polygonId]: [...(prev[polygonId] || []), { sender: 'ai', text: botResponse }]
-      }));
+      setChatHistories(prev => {
+        const updatedHistory = [...(prev[polygonId] || []), { sender: 'ai', text: botResponse }];
+        const newChatHistories = { ...prev, [polygonId]: updatedHistory };
+        // Save to localStorage if DEMO user
+        if (userRole === 'DEMO') {
+            localStorage.setItem('demoChatHistories', JSON.stringify(newChatHistories));
+        }
+        return newChatHistories;
+      });
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: botResponse }]);
 
     } catch (error) {

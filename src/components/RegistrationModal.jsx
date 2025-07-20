@@ -21,31 +21,15 @@ export default function RegistrationModal({ onClose, onSuccess }) {
 
   const navigate = useNavigate();
 
+  // Этот useEffect блок останется, так как он связан с логикой авторизации
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('role');
     if (token && userRole) {
       setIsRegistered(true);
     }
-
-    const container = document.querySelector('.registration-modal');
-    if (!container) return;
-
-    const particles = [];
-    for (let i = 0; i < 50; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.animationDuration = `${Math.random() * 5 + 5}s`;
-      particle.style.animationDelay = `${Math.random() * 5}s`;
-      container.appendChild(particle);
-      particles.push(particle);
-    }
-
-    return () => {
-      particles.forEach(p => p.remove());
-    };
-  }, []);
+    // Удаленный код по частицам был здесь
+  }, []); // Пустой массив зависимостей означает, что эффект запустится один раз после первого рендера
 
   const resetFormFields = () => {
     setEmail("");
@@ -59,7 +43,7 @@ export default function RegistrationModal({ onClose, onSuccess }) {
     setRepeatNewPassword("");
   };
 
-  const handleTabClick = (mode) => { 
+  const handleTabClick = (mode) => {
     setIsLoginMode(mode);
     setIsRecovering(false);
     setRecoveryStep(0);

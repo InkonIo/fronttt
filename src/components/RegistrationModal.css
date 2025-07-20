@@ -115,12 +115,12 @@
 }
 
 @keyframes slideIn {
-  from { 
-    width: 0; 
-    margin: 0 auto; 
+  from {
+    width: 0;
+    margin: 0 auto;
   }
-  to { 
-    width: 100%; 
+  to {
+    width: 100%;
   }
 }
 
@@ -154,29 +154,14 @@
   font-weight: 300;
 }
 
-/* RegistrationModal.css */
-
 .input-group input:focus {
-  border-bottom-color: white; /* Делает нижнюю границу полностью белой при фокусе */
-  box-shadow: none; /* Удаляет тень, которая создает эффект полной рамки */
-  outline: none; /* Убирает стандартную обводку браузера, если она есть */
+  border-bottom-color: white;
+  box-shadow: none;
+  outline: none;
 }
 
 .input-group input:focus::placeholder {
   color: rgba(255, 255, 255, 0.5);
-}
-
-.input-group input {
-  width: 100%;
-  padding: 15px 0;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5); /* This defines the default bottom border */
-  color: white;
-  font-size: 16px;
-  outline: none;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
 }
 
 /* Кастомный чекбокс */
@@ -184,7 +169,42 @@
   display: flex;
   align-items: center;
 }
-button {
+
+.checkbox-label input[type="checkbox"] {
+  display: none; /* Скрываем оригинальный чекбокс */
+}
+
+.checkbox-label .checkmark {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  margin-right: 10px;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background-color: #ff8c42;
+  border-color: #ff8c42;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Стили для кнопок submit и cancel */
+.submit-btn,
+.cancel-btn {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -195,13 +215,115 @@ button {
   color: rgb(0, 0, 0);
   cursor: pointer;
   transition: border-color 0.25s, background-color 0.3s, color 0.3s;
+  width: 100%; /* Убедимся, что кнопки занимают всю ширину */
+  box-sizing: border-box; /* Учитываем padding в ширине */
 }
 
-button:hover {
-  border-color: #9e6700b5;
+.submit-btn:hover {
+  background-color: #ff6b1a;
+  border-color: #ff6b1a;
+  color: white;
 }
 
-button:focus,
-button:focus-visible {
+.cancel-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  margin-top: 10px;
+}
+
+.cancel-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.submit-btn:focus,
+.submit-btn:focus-visible,
+.cancel-btn:focus,
+.cancel-btn:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.error {
+  color: #ff6b1a;
+  font-size: 13px;
+  margin-top: -10px;
+  text-align: center;
+}
+
+/* ========================================= */
+/* АДАПТИВНЫЙ ДИЗАЙН                         */
+/* ========================================= */
+
+/* Для экранов шириной до 768px (планшеты и мобильные) */
+@media (max-width: 768px) {
+  .registration-content {
+    padding: 25px; /* Уменьшим отступы внутри модального окна */
+    width: 85vw; /* Ширина 85% от viewport */
+    max-width: 350px; /* Ограничиваем максимальную ширину для планшетов */
+  }
+
+  .auth-tabs {
+    flex-direction: column; /* Табы будут располагаться вертикально */
+    margin-bottom: 25px; /* Уменьшим отступ */
+  }
+
+  .auth-tab {
+    padding: 8px 0; /* Меньшие отступы для каждого таба */
+    font-size: 12px; /* Чуть меньше шрифт */
+  }
+
+  .registration-form {
+    gap: 12px; /* Уменьшим расстояние между полями формы */
+  }
+
+  .input-group input {
+    font-size: 13px; /* Меньший шрифт для полей ввода */
+    padding: 10px 0; /* Меньшие отступы в полях ввода */
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    padding: 10px 15px; /* Меньшие отступы для кнопок */
+    font-size: 13px; /* Меньший шрифт для кнопок */
+  }
+
+  .checkbox-label {
+    font-size: 12px; /* Меньший шрифт для текста чекбокса */
+  }
+
+  .forgot-password {
+    font-size: 12px; /* Меньший шрифт для "Забыли пароль?" */
+  }
+
+  /* Скрываем частицы на мобильных, если они мешают производительности */
+  .particle {
+    display: none;
+  }
+}
+
+/* Для экранов шириной до 480px (очень маленькие смартфоны) */
+@media (max-width: 480px) {
+  .registration-content {
+    padding: 15px; /* Еще меньше отступы */
+    width: 90vw; /* Занимает почти всю ширину экрана */
+  }
+  .forgot-password {
+    text-align: center; /* Центрируем, если не помещается */
+    margin-top: 8px;
+  }
+  .auth-tabs {
+    margin-bottom: 15px;
+  }
+  .submit-btn, .cancel-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .input-group input {
+    font-size: 12px; /* Еще меньше шрифт для инпутов */
+    padding: 8px 0; /* Еще меньше отступы */
+  }
+  .error {
+    font-size: 12px;
+    margin-top: -8px;
+  }
 }
