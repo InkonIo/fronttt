@@ -257,45 +257,44 @@
 /* Для экранов шириной до 768px (планшеты и мобильные) */
 @media (max-width: 768px) {
   .registration-content {
-    padding: 25px; /* Уменьшим отступы внутри модального окна */
-    width: 85vw; /* Ширина 85% от viewport */
-    max-width: 350px; /* Ограничиваем максимальную ширину для планшетов */
+    padding: 20px; /* Немного уменьшим отступы */
+    width: 90vw; /* Увеличим ширину, чтобы занять больше места */
+    max-width: 300px; /* Установим более строгий максимальный предел */
   }
 
   .auth-tabs {
-    flex-direction: column; /* Табы будут располагаться вертикально */
-    margin-bottom: 25px; /* Уменьшим отступ */
+    flex-direction: column;
+    margin-bottom: 20px; /* Уменьшим отступ */
   }
 
   .auth-tab {
-    padding: 8px 0; /* Меньшие отступы для каждого таба */
-    font-size: 12px; /* Чуть меньше шрифт */
+    padding: 10px 0; /* Меньшие отступы для каждого таба */
+    font-size: 13px; /* Чуть меньше шрифт */
   }
 
   .registration-form {
-    gap: 12px; /* Уменьшим расстояние между полями формы */
+    gap: 15px; /* Уменьшим расстояние между полями формы */
   }
 
   .input-group input {
-    font-size: 13px; /* Меньший шрифт для полей ввода */
-    padding: 10px 0; /* Меньшие отступы в полях ввода */
+    font-size: 14px; /* Меньший шрифт для полей ввода */
+    padding: 12px 0; /* Меньшие отступы в полях ввода */
   }
 
   .submit-btn,
   .cancel-btn {
-    padding: 10px 15px; /* Меньшие отступы для кнопок */
-    font-size: 13px; /* Меньший шрифт для кнопок */
+    padding: 12px 18px; /* Меньшие отступы для кнопок */
+    font-size: 14px; /* Меньший шрифт для кнопок */
   }
 
   .checkbox-label {
-    font-size: 12px; /* Меньший шрифт для текста чекбокса */
+    font-size: 13px; /* Меньший шрифт для текста чекбокса */
   }
 
   .forgot-password {
-    font-size: 12px; /* Меньший шрифт для "Забыли пароль?" */
+    font-size: 13px; /* Меньший шрифт для "Забыли пароль?" */
   }
 
-  /* Скрываем частицы на мобильных, если они мешают производительности */
   .particle {
     display: none;
   }
@@ -305,22 +304,23 @@
 @media (max-width: 480px) {
   .registration-content {
     padding: 15px; /* Еще меньше отступы */
-    width: 90vw; /* Занимает почти всю ширину экрана */
+    width: 95vw; /* Занимает почти всю ширину экрана */
+    max-width: 280px; /* Еще более строгий максимальный предел */
   }
   .forgot-password {
-    text-align: center; /* Центрируем, если не помещается */
-    margin-top: 8px;
+    text-align: center;
+    margin-top: 5px;
   }
   .auth-tabs {
     margin-bottom: 15px;
   }
   .submit-btn, .cancel-btn {
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: 10px 15px;
+    font-size: 13px;
   }
   .input-group input {
-    font-size: 12px; /* Еще меньше шрифт для инпутов */
-    padding: 8px 0; /* Еще меньше отступы */
+    font-size: 13px; /* Еще меньше шрифт для инпутов */
+    padding: 10px 0; /* Еще меньше отступы */
   }
   .error {
     font-size: 12px;

@@ -106,9 +106,8 @@ export default function ProfileHeader({ onLogout = () => {}, userRole }) {
             Рекомендации
           </a>
         </nav>
-      </div>
 
-      <div className="profile-header-right">
+        {/* Перемещаем settings-container сюда, чтобы он был в одном flex-контейнере с остальными элементами */}
         <div className="settings-container">
           <button
             onClick={toggleSettingsMenu}
@@ -124,6 +123,9 @@ export default function ProfileHeader({ onLogout = () => {}, userRole }) {
           </div>
         </div>
       </div>
+
+      {/* profile-header-right больше не нужен, так как его содержимое перемещено */}
+      {/* <div className="profile-header-right"></div> */}
     </header>
   );
 }

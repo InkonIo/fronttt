@@ -35,6 +35,9 @@ body {
   gap: 25px;
   position: relative;
   z-index: 2;
+  /* Добавлено для выравнивания всех элементов слева */
+  flex-grow: 1; /* Позволяет занимать доступное пространство */
+  /* Удаляем justify-content: flex-start; так как теперь нам нужно разделять элементы */
 }
 
 .profile-header-logo {
@@ -93,12 +96,9 @@ body {
   text-shadow: 0 0 10px rgba(255, 140, 66, 0.4);
 }
 
+/* Удаляем .profile-header-right, так как его содержимое будет перемещено в .profile-header-left */
 .profile-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-  z-index: 2;
+  display: none; /* Скрываем, так как его содержимое переносится в .profile-header-left */
 }
 
 .profile-header-button {
@@ -126,12 +126,13 @@ body {
 /* Настройки */
 .settings-container {
   position: relative;
+  margin-left: auto; /* Прижимает контейнер настроек к правому краю внутри flex-контейнера */
 }
 
 .settings-dropdown {
   position: absolute;
   top: 120%;
-  right: 0;
+  right: 0; /* Оставляем right: 0, чтобы выпадающее меню появлялось справа от иконки */
   background: rgba(255, 255, 255, 0.95);
   border-radius: 10px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
@@ -164,73 +165,141 @@ body {
 }
 
 /* Мобильная адаптация */
+/* Для экранов шириной до 1024px (например, большие планшеты в портретном режиме) */
 @media (max-width: 1024px) {
   .profile-header {
-    padding: 12px 25px;
+    padding: 10px 20px; /* Немного уменьшим отступы */
+    height: 50px; /* Уменьшим высоту шапки */
   }
 
   .profile-header-left {
-    gap: 20px;
+    gap: 15px; /* Уменьшим расстояние между элементами слева */
   }
 
   .profile-header-nav {
-    gap: 16px;
-  }
-}
-
-@media (max-width: 768px) {
-  .profile-header {
-    padding: 10px 20px;
-    height: 45px;
-  }
-
-  .profile-header-left {
-    gap: 15px;
-  }
-
-  .profile-header-nav {
-    gap: 12px;
+    gap: 12px; /* Уменьшим расстояние между пунктами навигации */
   }
 
   .profile-header-nav-link {
-    font-size: 12px;
-    padding: 6px 0;
-  }
-
-  .profile-header-button {
-    font-size: 12px;
-    width: 24px;
-    height: 24px;
+    font-size: 12px; /* Уменьшим размер шрифта навигационных ссылок */
+    padding: 4px 0; /* Уменьшим отступы для ссылок */
   }
 
   .profile-header-logo {
-    font-size: 18px;
+    font-size: 18px; /* Немного уменьшим размер шрифта логотипа */
+  }
+
+  .profile-header-button {
+    font-size: 13px; /* Уменьшим размер шрифта кнопок */
+    width: 26px; /* Уменьшим ширину кнопок */
+    height: 26px; /* Уменьшим высоту кнопок */
   }
 }
 
-@media (max-width: 640px) {
+/* Для экранов шириной до 768px (планшеты и мобильные) */
+@media (max-width: 768px) {
   .profile-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    height: auto;
-    padding: 12px 20px;
+    padding: 8px 15px; /* Еще больше уменьшим отступы */
+    height: 38px; /* Еще больше уменьшим высоту шапки */
   }
 
-  .profile-header-left,
-  .profile-header-right {
-    width: 100%;
-    justify-content: space-between;
+  .profile-header-left {
+    gap: 10px; /* Еще больше уменьшим расстояние между элементами слева */
   }
 
   .profile-header-nav {
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px; /* Еще больше уменьшим расстояние между пунктами навигации */
   }
 
   .profile-header-nav-link {
-    font-size: 11px;
-    padding: 4px 0;
+    font-size: 11px; /* Еще больше уменьшим размер шрифта навигационных ссылок */
+    padding: 3px 0; /* Еще больше уменьшим отступы для ссылок */
+  }
+
+  .profile-header-button {
+    font-size: 12px; /* Еще больше уменьшим размер шрифта кнопок */
+    width: 24px; /* Еще больше уменьшим ширину кнопок */
+    height: 24px; /* Еще больше уменьшим высоту кнопок */
+  }
+
+  .profile-header-logo {
+    font-size: 16px; /* Еще больше уменьшим размер шрифта логотипа */
+  }
+}
+
+/* Для экранов шириной до 640px (мобильные телефоны в ландшафтном режиме и небольшие планшеты) */
+@media (max-width: 640px) {
+  .profile-header {
+    flex-direction: row; /* Возвращаем в ряд, чтобы все было в одной строке */
+    align-items: center; /* Выравнивание по центру */
+    gap: 10px; /* Уменьшим расстояние между элементами */
+    height: auto; /* Высота автоматически подстраивается под содержимое */
+    padding: 10px 15px; /* Скорректируем отступы */
+    justify-content: space-between; /* Распределяем элементы по краям */
+  }
+
+  .profile-header-left {
+    width: auto; /* Автоматическая ширина */
+    flex-wrap: wrap; /* Разрешаем перенос элементов */
+    gap: 8px; /* Уменьшим расстояние */
+    /* Удаляем order и margin-left: auto, так как settings-container теперь внутри */
+  }
+
+  .profile-header-right {
+    display: none; /* Скрываем, так как его содержимое перенесено */
+  }
+
+  .profile-header-nav {
+    flex-wrap: wrap; /* Разрешаем перенос навигационных ссылок на новую строку */
+    gap: 6px; /* Уменьшим расстояние между перенесенными ссылками */
+    justify-content: flex-start; /* Выравниваем навигацию по левому краю */
+    order: unset; /* Сбрасываем порядок */
+    width: auto; /* Автоматическая ширина */
+  }
+
+  .profile-header-nav-link {
+    font-size: 10px; /* Наименьший размер шрифта для навигационных ссылок */
+    padding: 2px 0; /* Минимальные отступы */
+  }
+
+  .profile-header-logo {
+    font-size: 14px; /* Уменьшим размер шрифта логотипа для очень маленьких экранов */
+    order: unset; /* Сбрасываем порядок */
+  }
+
+  .profile-header-button {
+    font-size: 11px; /* Уменьшим размер шрифта кнопок */
+    width: 22px; /* Уменьшим ширину кнопок */
+    height: 22px; /* Уменьшим высоту кнопок */
+  }
+
+  .settings-container {
+    order: unset; /* Сбрасываем порядок */
+    margin-left: auto; /* Прижимаем к правому краю внутри left-контейнера */
+  }
+}
+
+/* Для экранов шириной до 480px (очень маленькие смартфоны) */
+@media (max-width: 480px) {
+  .profile-header {
+    padding: 8px 10px; /* Еще меньшие отступы */
+    gap: 8px; /* Уменьшим расстояние */
+  }
+
+  .profile-header-logo {
+    font-size: 13px; /* Самый маленький размер логотипа */
+  }
+
+  .profile-header-nav {
+    gap: 5px; /* Еще более тесное расстояние для навигационных ссылок */
+  }
+  .profile-header-nav-link {
+    font-size: 9px; /* Очень маленький размер шрифта для навигационных ссылок */
+  }
+  .profile-header-button {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
   }
 }
 

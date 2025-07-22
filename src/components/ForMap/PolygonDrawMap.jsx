@@ -67,7 +67,11 @@ export default function PolygonDrawMap({ handleLogout }) {
 
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
 
-  const [activeBaseMapType, setActiveBaseMapType] = useState('openstreetmap');
+  // Инициализация activeBaseMapType из localStorage или по умолчанию 'openstreetmap'
+  const [activeBaseMapType, setActiveBaseMapType] = useState(() => {
+    const savedBaseMap = localStorage.getItem('selectedBaseMap');
+    return savedBaseMap || 'openstreetmap';
+  });
 
   const [userRole, setUserRole] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
@@ -979,6 +983,11 @@ export default function PolygonDrawMap({ handleLogout }) {
     }
   }, [handleLogout, navigate, showToast, fetchAllUsers]); 
 
+  // Сохранение activeBaseMapType в localStorage при его изменении
+  useEffect(() => {
+    localStorage.setItem('selectedBaseMap', activeBaseMapType);
+  }, [activeBaseMapType]);
+
 
   // useEffect for loading polygons, depends on userRole, currentAuthenticatedUser, selectedUserForAdminView
   useEffect(() => {
@@ -1190,6 +1199,7 @@ export default function PolygonDrawMap({ handleLogout }) {
         selectedPolygonData={finalSelectedPolygonData}
         activeBaseMapType={activeBaseMapType}
         onSelectBaseMap={setActiveBaseMapType}
+        activeAnalysisType={activeAnalysisType}
         onSelectAnalysisForPolygon={onSelectAnalysisForPolygon}
         setBlockHeight={setLayerBlockHeight}
       />

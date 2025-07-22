@@ -3,15 +3,15 @@
 .weather-widget-container {
   position: absolute;
   bottom: 35px; /* Отступ снизу (чтобы не перекрывать блок загрузки анализа) */
-  right: 10px; /* Отступ справа */
+  right: 290px; /* Отступ справа */
   background-color: rgba(26, 26, 26, 0.9); /* Темный фон с прозрачностью */
   color: #f0f0f0; /* Светлый текст */
   padding: 15px;
   border-radius: 10px; /* Скругленные углы */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Тень */
   z-index: 999; /* Поверх других элементов карты */
-  min-width: 240px; /* Уменьшаем минимальную ширину для компактности */
-  max-width: 365px; /* Уменьшаем максимальную ширину для компактности */
+  min-width: 240px; /* Минимальная ширина для настольных ПК */
+  max-width: 365px; /* Максимальная ширина для настольных ПК */
   font-family: 'Inter', sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.1); /* Тонкая светлая рамка */
   display: flex;
@@ -274,8 +274,10 @@
 /* Стили для кнопки переключения видимости виджета */
 .toggle-weather-button {
   position: absolute;
-  top: 10px; /* Позиционируем вверху справа */
-  right: 10px;
+  top: 50px; /* Позиционируем вверху справа */
+  /* right: 1000px; */
+  left: 10px;
+
   background-color: rgba(51, 51, 51, 0.7);
   color: #f0f0f0;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -302,4 +304,113 @@
 .weather-toggle-icon {
   font-size: 24px; /* Размер эмодзи внутри кнопки */
   line-height: 1;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+  .weather-widget-container {
+    padding: 5px; /* Уменьшаем внутренние отступы */
+    min-width: 120px; /* Уменьшаем минимальную ширину */
+    max-width: 100%; /* Устанавливаем максимальную ширину для мобильных */
+    right: 5px; /* Сдвигаем ближе к краю на мобильных */
+    bottom: 40px; /* Сдвигаем ближе к нижнему краю на мобильных */
+    gap: 10px; /* Уменьшаем расстояние между элементами */
+  }
+
+  .weather-header {
+    margin-bottom: 5px; /* Уменьшаем отступ */
+    padding-bottom: 5px; /* Уменьшаем отступ */
+  }
+
+  .weather-title {
+    font-size: 14px; /* Уменьшаем размер заголовка */
+    gap: 5px; /* Уменьшаем расстояние */
+  }
+
+  .weather-icon-large {
+    font-size: 20px; /* Уменьшаем размер иконки заголовка */
+  }
+
+  .weather-date {
+    font-size: 11px; /* Уменьшаем размер даты */
+  }
+
+  .weather-main {
+    margin-bottom: 10px; /* Уменьшаем отступ */
+  }
+
+  .weather-main-emoji {
+    font-size: 40px; /* Уменьшаем размер основной иконки погоды */
+  }
+
+  .weather-description {
+    font-size: 11px; /* Уменьшаем размер описания */
+  }
+
+  .weather-feels-like {
+    font-size: 10px; /* Уменьшаем размер "ощущается как" */
+  }
+
+  .weather-details-grid {
+    gap: 5px; /* Уменьшаем расстояние в сетке деталей */
+  }
+
+  .weather-detail-item {
+    padding: 8px; /* Уменьшаем паддинг деталей */
+    gap: 5px; /* Уменьшаем расстояние */
+    font-size: 12px; /* Уменьшаем размер шрифта деталей */
+  }
+
+  .weather-detail-icon {
+    font-size: 16px; /* Уменьшаем размер иконок деталей */
+  }
+
+  .weather-detail-value {
+    font-size: 12px; /* Уменьшаем размер значения детали */
+  }
+
+  .weather-detail-label {
+    font-size: 10px; /* Уменьшаем размер метки детали */
+  }
+
+  .weather-nav-button {
+    padding: 6px 10px; /* Уменьшаем паддинг кнопок навигации */
+    width: 30px; /* Уменьшаем размер кнопок навигации */
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .weather-daily-card {
+    padding: 8px; /* Уменьшаем паддинг ежедневной карточки */
+  }
+
+  .weather-daily-card-date {
+    font-size: 10px; /* Уменьшаем размер даты в карточке */
+  }
+
+  .weather-daily-card-emoji {
+    font-size: 30px; /* Уменьшаем размер эмодзи в карточке */
+  }
+
+  .weather-daily-card-temp {
+    font-size: 14px; /* Уменьшаем размер температуры в карточке */
+  }
+
+  .weather-daily-card-conditions {
+    font-size: 9px; /* Уменьшаем размер условий в карточке */
+  }
+
+  /* Удалены мобильные стили для .toggle-weather-button и .weather-toggle-icon */
+  /* .toggle-weather-button {
+    top: 5px;
+    right: 5px;
+    padding: 6px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+
+  .weather-toggle-icon {
+    font-size: 20px;
+  } */
 }
