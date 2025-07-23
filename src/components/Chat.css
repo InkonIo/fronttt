@@ -18,7 +18,7 @@
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: flex-start; /* Изменено для выравнивания элементов сверху */
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
@@ -145,7 +145,9 @@
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s, transform 0.2s;
-  margin-top: 550px; /* Отступ для настольных ПК */
+  /* margin-top: 550px; Удалено, так как это жесткое позиционирование */
+  margin-top: auto; /* Выравнивает кнопку к низу контейнера */
+  margin-bottom: 20px; /* Отступ от низа */
   width: 90%;
   max-width: 200px;
   user-select: none;
@@ -167,8 +169,8 @@
   cursor: not-allowed;
 }
 
-/* Кнопка "Новый полигон" и "Выйти" - переименовал в main-sidebar-button для общих стилей */
-.main-sidebar-button {
+/* Кнопка "Новый полигон" (если она будет возвращена) */
+.create-polygon-button {
   background-color: #4CAF50;
   color: #fff;
   border: none;
@@ -180,19 +182,21 @@
   width: 90%;
   max-width: 200px;
   margin-top: 10px; /* Отступ между кнопками */
+  margin-bottom: 10px; /* Добавлен отступ снизу */
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
 }
 
-.main-sidebar-button:hover {
+.create-polygon-button:hover {
   background-color: #45a049;
 }
 
-.main-sidebar-button:active {
+.create-polygon-button:active {
   transform: translateY(0);
 }
+
 
 /* Основное содержимое чата */
 .chat-main {
@@ -246,7 +250,7 @@
 /* Контейнер сообщений */
 .messages-container {
   flex-grow: 1;
-  padding: 20px;
+  padding: 45px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -330,6 +334,12 @@
   margin-top: 10px;
   align-self: flex-start;
   padding: 0 20px;
+  /* Добавлены стили для плавающих точек */
+  background-color: #3a3a3a; /* Фон как у AI сообщения */
+  padding: 12px 18px;
+  border-radius: 12px;
+  max-width: 80%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .typing-dot {
@@ -413,63 +423,6 @@
   background-color: #555;
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-
-.message-input {
-  flex-grow: 1;
-  padding: 15px 20px;
-  border: 1px solid #444;
-  border-radius: 25px;
-  background-color: #2a2a2a;
-  color: #fff;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.message-input:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
-}
-
-.message-input::placeholder {
-  color: #888;
-}
-
-.message-input:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.send-button {
-  background-color: #4CAF50;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 20px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.send-button:hover {
-  background-color: #45a049;
-}
-
-.send-button:active {
-  transform: translateY(1px);
-}
-
-.send-button:disabled {
-  background-color: #666;
-  cursor: not-allowed;
-  opacity: 0.7;
 }
 
 /* Модальное окно подтверждения */
@@ -606,7 +559,7 @@
   }
 
   .messages-container {
-    padding: 15px;
+    padding: 20px;
     gap: 10px;
     padding-bottom: 90px; /* Отступ для input-area */
   }

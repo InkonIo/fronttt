@@ -3,7 +3,7 @@ import './Chat.css';
 import { jwtDecode } from 'jwt-decode';
 
 const MAX_MESSAGES_IN_HISTORY = 20;
-const DEMO_CHAT_MESSAGE_LIMIT = 100;
+const DEMO_CHAT_MESSAGE_LIMIT = 100; // Лимит сообщений для демо-режима
 const BASE_API_URL = 'http://localhost:8080';
 
 export default function ChatPage({ handleLogout }) {
@@ -21,13 +21,63 @@ export default function ChatPage({ handleLogout }) {
   const [polygonToDelete, setPolygonToDelete] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [isResizing, setIsResizing] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState(null); // 'DEMO' or 'USER'
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const sidebarRef = useRef(null);
-  const chatHistoriesRef = useRef(chatHistories);
+  const chatHistoriesRef = useRef(chatHistories); // Ref for current chatHistories state
 
+  // Обновляем ссылку на chatHistories при каждом изменении chatHistories
+  useEffect(() => {
+    chatHistoriesRef.current = chatHistories;
+  }, [chatHistories]);
+
+  // Прокрутка к последнему сообщению
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Эффект для прокрутки при изменении сообщений
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentMessages]);
+
+  // Логика изменения размера сайдбара
+  const startResizing = useCallback((e) => {
+    if (window.innerWidth > 768) {
+      setIsResizing(true);
+    }
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resizeSidebar = useCallback((e) => {
+    if (isResizing && sidebarRef.current) {
+      const newWidth = e.clientX - sidebarRef.current.getBoundingClientRect().left;
+      if (newWidth > 150 && newWidth < 400) {
+        setSidebarWidth(newWidth);
+      }
+    }
+  }, [isResizing]);
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', resizeSidebar);
+      window.addEventListener('mouseup', stopResizing);
+    } else {
+      window.removeEventListener('mousemove', resizeSidebar);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+    return () => {
+      window.removeEventListener('mousemove', resizeSidebar);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [isResizing, resizeSidebar, stopResizing]);
+
+  // useCallback для fetchUserPolygons, чтобы избежать лишних ререндеров
   const fetchUserPolygons = useCallback(async (token, role) => {
     if (role === 'DEMO') {
         try {
@@ -65,6 +115,7 @@ export default function ChatPage({ handleLogout }) {
         return;
     }
 
+    // Логика для USER роли (загрузка с бэкенда)
     if (!token) {
       console.warn("Токен отсутствует, не могу загрузить полигоны.");
       return;
@@ -113,6 +164,7 @@ export default function ChatPage({ handleLogout }) {
     }
   }, [isLoggedIn, handleLogout]);
 
+  // useCallback для fetchPolygonChatHistory, чтобы избежать лишних ререндеров
   const fetchPolygonChatHistory = useCallback(async (polygonId, token) => {
     if (userRole === 'DEMO') {
         try {
@@ -132,6 +184,7 @@ export default function ChatPage({ handleLogout }) {
         return [];
     }
 
+    // Логика для USER роли (загрузка с бэкенда)
     if (!token) {
       console.warn("Токен отсутствует, не могу загрузить историю чата.");
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: 'Ошибка: Токен отсутствует для загрузки истории чата.' }]);
@@ -169,51 +222,7 @@ export default function ChatPage({ handleLogout }) {
     }
   }, [userRole, handleLogout]);
 
-  useEffect(() => {
-    chatHistoriesRef.current = chatHistories;
-  }, [chatHistories]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [currentMessages]);
-
-  const startResizing = useCallback((e) => {
-    if (window.innerWidth > 768) {
-      setIsResizing(true);
-    }
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
-  }, []);
-
-  const resizeSidebar = useCallback((e) => {
-    if (isResizing && sidebarRef.current) {
-      const newWidth = e.clientX - sidebarRef.current.getBoundingClientRect().left;
-      if (newWidth > 150 && newWidth < 400) {
-        setSidebarWidth(newWidth);
-      }
-    }
-  }, [isResizing]);
-
-  useEffect(() => {
-    if (isResizing) {
-      window.addEventListener('mousemove', resizeSidebar);
-      window.addEventListener('mouseup', stopResizing);
-    } else {
-      window.removeEventListener('mousemove', resizeSidebar);
-      window.removeEventListener('mouseup', stopResizing);
-    }
-    return () => {
-      window.removeEventListener('mousemove', resizeSidebar);
-      window.removeEventListener('mouseup', stopResizing);
-    };
-  }, [isResizing, resizeSidebar, stopResizing]);
-
+  // Инициализация токена и загрузка полигонов при монтировании компонента
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -226,10 +235,10 @@ export default function ChatPage({ handleLogout }) {
         const roles = decodedToken.roles || [];
         if (roles.includes('ROLE_DEMO')) {
             setUserRole('DEMO');
-            fetchUserPolygons(token, 'DEMO');
+            fetchUserPolygons(token, 'DEMO'); // Загружаем демо-полигоны
         } else {
             setUserRole('USER');
-            fetchUserPolygons(token, 'USER');
+            fetchUserPolygons(token, 'USER'); // Загружаем полигоны пользователя
         }
       } catch (error) {
         console.error("Failed to decode JWT token:", error);
@@ -245,18 +254,22 @@ export default function ChatPage({ handleLogout }) {
     }
   }, [fetchUserPolygons, handleLogout]);
 
+  // Функция отправки сообщения на бэкенд (теперь общая для всех ролей, но с учетом DEMO_CHAT_MESSAGE_LIMIT)
   const sendMessageToBackend = useCallback(async (textToSend, polygonId) => {
-    setIsTyping(true);
+    setIsTyping(true); // Включаем индикатор набора текста
 
+    // Добавляем сообщение пользователя в текущий чат и историю локально
     setCurrentMessages(prev => [...prev, { sender: 'user', text: textToSend }]);
     setChatHistories(prev => ({
       ...prev,
       [polygonId]: [...(prev[polygonId] || []), { sender: 'user', text: textToSend }]
     }));
 
+    // Проверка лимита сообщений для DEMO-пользователей
     if (userRole === 'DEMO') {
         const currentPolygonHistory = chatHistoriesRef.current[polygonId] || [];
         if (currentPolygonHistory.filter(msg => msg.sender === 'user').length >= DEMO_CHAT_MESSAGE_LIMIT) {
+            // Откатываем последнее сообщение пользователя, если лимит достигнут
             setChatHistories(prev => ({
                 ...prev,
                 [polygonId]: (prev[polygonId] || []).slice(0, -1)
@@ -264,15 +277,16 @@ export default function ChatPage({ handleLogout }) {
             setCurrentMessages(prev => prev.slice(0, -1));
 
             setCurrentMessages(prev => [...prev, { sender: 'ai', text: `В демо-режиме количество сообщений ограничено ${DEMO_CHAT_MESSAGE_LIMIT}. Пожалуйста, зарегистрируйтесь для неограниченного доступа.` }]);
-            setIsTyping(false);
+            setIsTyping(false); // Выключаем индикатор
             setMessage('');
-            return;
+            return; // Выходим, чтобы не отправлять на бэкенд
         }
     }
 
+    // Если нет токена или полигона, показываем ошибку и откатываем сообщение
     if (!jwtToken || !polygonId) {
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: 'Ошибка: Вы не авторизованы или полигон не выбран.' }]);
-      setIsTyping(false);
+      setIsTyping(false); // Выключаем индикатор
       setChatHistories(prev => ({
         ...prev,
         [polygonId]: (prev[polygonId] || []).slice(0, -1)
@@ -281,6 +295,7 @@ export default function ChatPage({ handleLogout }) {
       return;
     }
 
+    // Формирование контекста полигона для ИИ
     const currentPolygonHistory = chatHistoriesRef.current[polygonId] || [];
     const selectedPolygon = userPolygons.find(p => p.id === polygonId);
     let polygonContext = "";
@@ -300,9 +315,6 @@ export default function ChatPage({ handleLogout }) {
                     } else if (geoJsonParsed.type === 'Polygon' && Array.isArray(geoJsonParsed.coordinates) && geoJsonParsed.coordinates[0] && geoJsonParsed.coordinates[0][0] && geoJsonParsed.coordinates[0][0].length >= 2) {
                         representativeCoords = geoJsonParsed.coordinates[0][0];
                         geoInfo = `Полигон (первая точка): Широта ${representativeCoords[1]}, Долгота ${representativeCoords[0]}`;
-                    } else if (geoJsonParsed.type === 'MultiPolygon' && Array.isArray(geoJsonParsed.coordinates) && geoJsonParsed.coordinates[0] && geoJsonParsed.coordinates[0][0] && geoJsonParsed.coordinates[0][0][0] && geoJsonParsed.coordinates[0][0][0].length >= 2) {
-                        representativeCoords = geoJsonParsed.coordinates[0][0][0];
-                        geoInfo = `Мультиполигон (первая точка первого полигона): Широта ${representativeCoords[1]}, Долгота ${representativeCoords[0]}`;
                     } else {
                         geoInfo = `Геоданные (структура): ${geoJsonParsed.type}`;
                     }
@@ -322,17 +334,18 @@ export default function ChatPage({ handleLogout }) {
         polygonContext += ` Когда тебя спрашивают об общей информации по текущему полигону (например, "расскажи мне инфу про этот полигон"), отвечай кратко (2-3 предложения), фокусируясь на названии полигона и его культуре. Сделай ответ интересным.`;
     }
 
+    // Формируем сообщения для OpenAI с правильными полями 'role' и 'content'
     let messagesForOpenAI = [];
     if (polygonContext) {
         messagesForOpenAI.push({
-            role: 'system',
-            content: polygonContext
+            role: 'system', // 'role' вместо 'sender'
+            content: polygonContext // 'content' вместо 'text'
         });
     }
 
     messagesForOpenAI = messagesForOpenAI.concat(currentPolygonHistory.map(msg => ({
-      role: msg.sender === 'user' ? 'user' : 'assistant',
-      content: msg.text
+      role: msg.sender === 'user' ? 'user' : 'assistant', // Маппинг 'sender' в 'role'
+      content: msg.text // Маппинг 'text' в 'content'
     })));
 
     const offset = polygonContext ? 1 : 0;
@@ -340,9 +353,9 @@ export default function ChatPage({ handleLogout }) {
       messagesForOpenAI = messagesForOpenAI.slice(-(MAX_MESSAGES_IN_HISTORY + offset));
     }
 
-    messagesForOpenAI.push({ role: 'user', content: textToSend });
+    messagesForOpenAI.push({ role: 'user', content: textToSend }); // 'role' и 'content' для нового сообщения
 
-    
+    // Отправка запроса на бэкенд для получения ответа от ИИ (общая для всех ролей)
     try {
       const response = await fetch(`${BASE_API_URL}/api/chat/polygons/${polygonId}/messages`, {
         method: 'POST',
@@ -350,7 +363,7 @@ export default function ChatPage({ handleLogout }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${jwtToken}`
         },
-        body: JSON.stringify({ message: textToSend, history: messagesForOpenAI }),
+        body: JSON.stringify({ message: textToSend, history: messagesForOpenAI }), // Отправляем messagesForOpenAI
       });
 
       if (!response.ok) {
@@ -363,6 +376,7 @@ export default function ChatPage({ handleLogout }) {
           localStorage.removeItem('token');
           if (handleLogout) handleLogout();
         }
+        // Откатываем сообщение пользователя, если сервер вернул ошибку
         setChatHistories(prev => ({
           ...prev,
           [polygonId]: (prev[polygonId] || []).slice(0, -1)
@@ -376,6 +390,7 @@ export default function ChatPage({ handleLogout }) {
       setChatHistories(prev => {
         const updatedHistory = [...(prev[polygonId] || []), { sender: 'ai', text: botResponse }];
         const newChatHistories = { ...prev, [polygonId]: updatedHistory };
+        // Если DEMO пользователь, сохраняем историю в localStorage
         if (userRole === 'DEMO') {
             localStorage.setItem('demoChatHistories', JSON.stringify(newChatHistories));
         }
@@ -386,96 +401,48 @@ export default function ChatPage({ handleLogout }) {
     } catch (error) {
       console.error("Error sending message:", error);
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: `Ошибка сети или сервера при отправке сообщения: ${error.message}` }]);
+      // Откатываем сообщение пользователя при ошибке сети/сервера
       setChatHistories(prev => ({
         ...prev,
         [polygonId]: (prev[polygonId] || []).slice(0, -1)
       }));
       setCurrentMessages(prev => prev.slice(0, -1));
     } finally {
-      setIsTyping(false);
+      setIsTyping(false); // Выключаем индикатор набора текста
       setMessage('');
     }
-  }, [jwtToken, userPolygons, userRole, handleLogout]);
+  }, [jwtToken, userPolygons, userRole, handleLogout]); // userRole добавлен в зависимости
 
+  // Обработчик отправки сообщения
   const handleSend = () => {
     if (!message.trim() || !selectedPolygonId) return;
     sendMessageToBackend(message, selectedPolygonId);
   }; 
 
-  
-
+  // Обработчик нажатия клавиши Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && isLoggedIn && selectedPolygonId) {
       handleSend();
     }
   };
 
+  // Обработчик клика по полигону
   const handlePolygonClick = useCallback(async (polygon) => {
     setSelectedPolygonId(polygon.id);
     localStorage.setItem('lastSelectedPolygonId', polygon.id);
     setMessage('');
 
-    if (userRole === 'DEMO') {
-        const storedChatHistories = localStorage.getItem('demoChatHistories');
-        if (storedChatHistories) {
-            try {
-                const parsedHistories = JSON.parse(storedChatHistories);
-                setCurrentMessages(parsedHistories[polygon.id] || []);
-                setChatHistories(parsedHistories);
-            } catch (e) {
-                console.error("Error parsing demo chat histories from localStorage on polygon click:", e);
-                localStorage.removeItem('demoChatHistories');
-                setCurrentMessages([]);
-                setChatHistories({});
-            }
-        } else {
-            setCurrentMessages([]);
-            setChatHistories({});
-        }
-    } else {
-        await fetchPolygonChatHistory(polygon.id, jwtToken);
-    }
+    // Загрузка истории чата в зависимости от роли
+    await fetchPolygonChatHistory(polygon.id, jwtToken);
+    
     if (window.innerWidth <= 768) {
         setIsMobileSidebarOpen(false);
     }
-  }, [userRole, jwtToken, fetchPolygonChatHistory]);
+  }, [jwtToken, fetchPolygonChatHistory]);
 
-  const handleCreatePolygon = async () => {
-    if (!jwtToken) return;
+  // *** Удален handleCreatePolygon и связанная логика ***
 
-    const polygonName = prompt("Введите название нового полигона:");
-    if (!polygonName || polygonName.trim() === "") {
-      alert("Название полигона не может быть пустым.");
-      return;
-    }
-
-    const createUrl = userRole === 'DEMO' ? `${BASE_API_URL}/api/polygons/demo` : `${BASE_API_URL}/api/polygons`;
-
-    try {
-      const response = await fetch(createUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${jwtToken}`
-        },
-        body: JSON.stringify({ name: polygonName.trim() })
-      });
-
-      if (response.ok) {
-        await fetchUserPolygons(jwtToken, userRole);
-        const newPolygon = await response.json();
-        setSelectedPolygonId(newPolygon.id);
-      } else {
-        console.error("Failed to create polygon:", response.statusText);
-        if (response.status === 401 || response.status === 403) {
-          handleLogout();
-        }
-      }
-    } catch (error) {
-      console.error("Error creating polygon:", error);
-    }
-  };
-
+  // Обработчик очистки истории (показывает модальное окно)
   const handleClearHistory = useCallback(() => {
     if (!selectedPolygonId || !jwtToken) {
       setCurrentMessages(prev => [...prev, { sender: 'ai', text: 'Ошибка: Полигон не выбран или вы не авторизованы.' }]);
@@ -485,6 +452,7 @@ export default function ChatPage({ handleLogout }) {
     setShowConfirmModal(true);
   }, [selectedPolygonId, jwtToken]);
 
+  // Подтверждение очистки истории
   const confirmClearHistory = useCallback(async () => {
     setShowConfirmModal(false);
     setIsTyping(true);
@@ -505,6 +473,7 @@ export default function ChatPage({ handleLogout }) {
         return;
     }
 
+    // Логика для USER роли (удаление через бэкенд)
     try {
       const response = await fetch(`${BASE_API_URL}/api/chat/polygons/${polygonToDelete}/messages`, {
         method: 'DELETE',
@@ -540,21 +509,28 @@ export default function ChatPage({ handleLogout }) {
     }
   }, [selectedPolygonId, jwtToken, userRole, handleLogout, polygonToDelete]);
 
+  // Отмена очистки истории
   const cancelClearHistory = useCallback(() => {
     setShowConfirmModal(false);
     setPolygonToDelete(null);
   }, []);
 
+  // Обработчик выхода из системы
   const onLogout = useCallback(() => {
     if (userRole === 'DEMO') {
       localStorage.removeItem('demoPolygons');
       localStorage.removeItem('demoChatHistories');
       localStorage.removeItem('lastSelectedPolygonId');
       console.log("Demo user data cleared from localStorage.");
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('lastSelectedPolygonId');
+      console.log("User data cleared from localStorage.");
     }
     handleLogout();
   }, [userRole, handleLogout]);
 
+  // Эффект для закрытия мобильного сайдбара при клике вне его
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -570,7 +546,7 @@ export default function ChatPage({ handleLogout }) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
-    }
+    };
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -597,11 +573,11 @@ export default function ChatPage({ handleLogout }) {
                 disabled={!isLoggedIn}
               >
                 <span className="polygon-name">{polygon.name} ({polygon.crop || 'Нет культуры'})</span>
-                {/* Исправлено: Вместо <button> используем <span> */}
+                {/* Кнопка очистки истории для конкретного полигона */}
                 <span
                   className="clear-polygon-button"
                   onClick={(e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Предотвращаем срабатывание handlePolygonClick
                     handleClearHistory(polygon.id);
                   }}
                   title="Очистить историю для этого полигона"
@@ -618,6 +594,19 @@ export default function ChatPage({ handleLogout }) {
             )
           )}
         </div>
+
+        {/* Кнопка "Создать полигон" удалена */}
+        {/*
+        {isLoggedIn && (
+          <button
+            className="create-polygon-button"
+            onClick={handleCreatePolygon}
+            disabled={isTyping}
+          >
+            Создать полигон
+          </button>
+        )}
+        */}
 
         {selectedPolygonId && isLoggedIn && (
           <button
@@ -641,7 +630,7 @@ export default function ChatPage({ handleLogout }) {
           <span className="chat-header-title">
             {selectedPolygonId ? userPolygons.find(p => p.id === selectedPolygonId)?.name : 'Чат'}
           </span>
-          <div style={{width: '40px'}}></div>
+          <div style={{width: '40px'}}></div> {/* Для выравнивания */}
         </div>
 
         <div className="messages-container">
@@ -662,9 +651,9 @@ export default function ChatPage({ handleLogout }) {
           {isTyping && (
             <div className="message ai">
               <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
+                <span className="typing-dot"></span>
               </div>
             </div>
           )}
