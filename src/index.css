@@ -1,0 +1,324 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  min-width: 320px;
+  min-height: 100vh;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-color: transparent;
+  color: #000000;
+}
+
+/* Тёмная тема */
+body.dark-theme {
+  background-color: #171717;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #ffffff;
+}
+
+body.dark-theme h1 {
+  color: white;
+}
+
+body.dark-theme a {
+  color: #ffffff;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* Кнопка в тёмной теме */
+body.dark-theme button {
+  background-color: #388e3c;
+  color: rgb(0, 0, 0);
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Основной контент */
+#mainContent {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  width: 100%;
+}
+
+#mainContent.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-around;
+}
+
+/* Скрытие и показ */
+.hidden {
+  display: none;
+}
+.visible {
+  display: block;
+}
+
+/* Светлая тема — форма */
+.modal-content {
+  background-color: #d3d3d3;
+  color: #000;
+}
+
+/* Тёмная тема — форма */
+body.dark-theme .modal-content {
+  background-color: #2b2b2b;
+  color: #fff;
+}
+
+/* Обновим поля ввода */
+input,
+button {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* AI Chat Styles */
+.ai-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  max-width: 400px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ai-chat-hint {
+  padding: 16px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  user-select: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+}
+
+.ai-chat-hint.hide {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.ai-chat-messages {
+  flex: 1;
+  padding: 12px 16px;
+  overflow-y: auto;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa transparent;
+}
+
+.ai-chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb {
+  background-color: #aaa;
+  border-radius: 3px;
+}
+
+.ai-chat-message {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ai-chat-message.user {
+  align-self: flex-end;
+  background-color: #0b93f6;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-chat-message.bot {
+  align-self: flex-start;
+  background-color: #e5e5ea;
+  color: #000;
+  border-bottom-left-radius: 4px;
+}
+
+.ai-chat-input-wrapper {
+  display: flex;
+  border-top: 1px solid #ddd;
+  padding: 8px 12px;
+  background: white;
+}
+
+.ai-chat-input {
+  flex-grow: 1;
+  resize: none;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.3s ease;
+}
+
+.ai-chat-input:focus {
+  border-color: #0b93f6;
+}
+
+.ai-chat-send-btn {
+  background-color: #0b93f6;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-chat-send-btn:hover {
+  background-color: #0573d4;
+}
+
+.chat-message {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: #007bff;
+  color: white;
+  align-self: flex-end;
+}
+
+.bot-message {
+  background-color: #e5e5ea;
+  color: #333;
+  align-self: flex-start;
+}
+
+#root {
+  width: 100%;
+}
+
+/* Стили для контейнера, который оборачивает все маршруты, кроме заголовка */
+.main-content-wrapper {
+  box-sizing: border-box; /* Включает padding в общую высоту/ширину */
+  /* Минимальная высота, чтобы контент занимал оставшееся пространство */
+  min-height: calc(100vh - 60px); /* Значение по умолчанию для больших экранов */
+}
+
+/* Применяем padding-top только если пользователь аутентифицирован (класс 'authenticated' добавляется в App.jsx) */
+.main-content-wrapper.authenticated {
+  padding-top: 30px; /* Отступ для десктопов (30px высота заголовка + 15px сверху + 15px снизу = 60px) */
+}
+
+/* Медиа-запросы для адаптивного padding-top */
+@media (max-width: 1024px) {
+  .main-content-wrapper.authenticated {
+    padding-top: 60px; /* Сохраняем то же значение, если header не сильно меняется */
+  }
+}
+
+@media (max-width: 768px) {
+  /* На этом брейкпойнте ProfileHeader может быть 45px (включая внутренние padding) */
+  .main-content-wrapper.authenticated {
+    padding-top: 70px; /* Увеличиваем отступ, чтобы учесть 45px + запас */
+  }
+}
+
+@media (max-width: 640px) {
+  /* На этом брейкпойнте ProfileHeader становится flex-direction: column и height: auto,
+     его высота может сильно увеличиться (например, до 80-100px или более в зависимости от контента).
+     Подберите это значение экспериментально, чтобы оно было достаточным. */
+  .main-content-wrapper.authenticated {
+    padding-top: 35px; /* Ориентировочное значение, может потребовать точной настройки */
+  }
+}
+
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+
+  /* Адаптация ваших стилей для светлой темы */
+  .auth-container {
+    border-color: #ccc;
+  }
+
+  header nav {
+    background: #e0e0e0;
+  }
+}

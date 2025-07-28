@@ -1,0 +1,346 @@
+/* src/components/EarthData.css */
+
+.earth-dashboard-container {
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #000;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Анимированный оранжевый градиентный фон */
+.earth-dashboard-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(80, 30, 0, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(120, 50, 10, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 40% 80%, rgba(100, 40, 0, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(60, 20, 0, 0.1) 0%, rgba(100, 40, 5, 0.2) 50%, rgba(80, 30, 0, 0.1) 100%);
+  animation: earth-gradient-flow 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes earth-gradient-flow {
+  0%, 100% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateX(-10px) translateY(-15px) scale(1.05);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(15px) translateY(10px) scale(0.95);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateX(-5px) translateY(20px) scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+.earth-hero-section {
+  height: 40vh;
+  background-image: url('https://images.wallpaperscraft.com/image/single/leaves_drops_dew_129757_3840x2400.jpg');
+  background-size: cover;
+  background-position: center top;
+  position: relative;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  display: flex;
+  align-items: flex-end;
+}
+
+.earth-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 20, 0, 0.5) 100%);
+}
+
+.earth-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.earth-particle {
+  position: absolute;
+  bottom: -10px;
+  width: 3px;
+  height: 3px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.2) 100%);
+  border-radius: 50%;
+  animation: earth-float-up linear infinite;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes earth-float-up {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+    transform: translateY(-3vh) scale(1);
+  }
+  90% {
+    opacity: 0.6;
+    transform: translateY(-35vh) scale(0.8);
+  }
+  100% {
+    transform: translateY(-40vh) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.earth-hero-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 0 50px 50px;
+}
+
+.earth-hero-text-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.earth-hero-title {
+  font-family: 'Georgia', serif;
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.earth-hero-subtitle {
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  flex: 1;
+  max-width: 400px;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+  padding-bottom: 8px;
+}
+
+.earth-data-section {
+  padding: 40px 40px 60px;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.earth-data-grid {
+  display: flex;
+  gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.earth-data-card {
+  background: linear-gradient(145deg, rgba(26, 26, 26, 0.9) 0%, rgba(17, 17, 17, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(51, 51, 51, 0.8);
+  width: 110px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.earth-data-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 150, 0, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.earth-data-card:hover::before {
+  left: 100%;
+}
+
+.earth-data-card:hover {
+  background: linear-gradient(145deg, rgba(34, 34, 34, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%);
+  border-color: rgba(255, 120, 0, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 100, 0, 0.2);
+}
+
+.earth-card-icon {
+  color: #555;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.earth-card-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.earth-data-card:hover .earth-card-icon {
+  color: #fa7;
+}
+
+.earth-data-card h3 {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #bbb;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.earth-card-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.earth-info-display {
+  margin-top: 20px;
+  text-align: center;
+  max-width: 450px;
+  margin: 20px auto 0;
+  animation: earth-fadeIn 0.4s ease-out;
+}
+
+@keyframes earth-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.earth-info-display p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #ddd;
+  padding: 12px 16px;
+  background: linear-gradient(145deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-radius: 6px;
+  border: 1px solid rgba(51, 51, 51, 0.6);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.earth-info-display p::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    rgba(200, 80, 0, 0.1) 0%, 
+    rgba(255, 120, 30, 0.05) 25%, 
+    rgba(255, 150, 50, 0.1) 50%, 
+    rgba(255, 120, 30, 0.05) 75%, 
+    rgba(200, 80, 0, 0.1) 100%);
+  border-radius: 6px;
+  animation: earth-info-glow 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes earth-info-glow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .earth-hero-section {
+    height: 35vh;
+  }
+  
+  .earth-hero-text-container {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .earth-hero-title {
+    font-size: 1.8rem;
+  }
+  
+  .earth-hero-subtitle {
+    max-width: 100%;
+  }
+  
+  .earth-data-grid {
+    gap: 10px;
+    max-width: 100%;
+  }
+  
+  .earth-data-card {
+    width: 90px;
+    height: 90px;
+    padding: 16px 12px;
+  }
+  
+  .earth-card-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .earth-data-card h3 {
+    font-size: 0.65rem;
+  }
+  
+  .earth-card-value {
+    font-size: 1rem;
+  }
+  
+  .earth-info-display {
+    margin-top: 15px;
+    max-width: 85%;
+  }
+}

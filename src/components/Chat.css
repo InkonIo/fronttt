@@ -1,0 +1,660 @@
+/* Общие стили */
+.chat-container {
+  display: flex;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Боковая панель */
+.chat-sidebar {
+  width: 220px;
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Изменено для выравнивания элементов сверху */
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100vh;
+  overflow-y: auto;
+  transition: transform 0.4s ease, width 0.4s ease; /* Добавлен transform */
+  position: relative;
+  padding-top: 80px;
+  z-index: 10;
+}
+
+/* Стили для ползунка изменения размера */
+.chat-sidebar-resizer {
+  width: 8px;
+  cursor: ew-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background-color: transparent; /* Сделаем его невидимым по умолчанию */
+  transition: background-color 0.2s ease;
+}
+
+.chat-sidebar-resizer:hover {
+  background-color: rgba(255, 255, 255, 0.3); /* Показываем при наведении */
+}
+
+/* Заголовок боковой панели */
+.sidebar-title {
+  font-family: 'Georgia', serif;
+  font-weight: 300;
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 25px;
+  text-align: center;
+  margin-top: -40px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Контейнер кнопок полигонов */
+.polygon-buttons-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.polygon-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 90%;
+  max-width: 200px;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.polygon-button.selected {
+  background-color: #4CAF50;
+  box-shadow: 0 4px 8px rgba(0, 70, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.polygon-button:hover:not(.selected) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.polygon-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.polygon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.polygon-name {
+  flex-grow: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.clear-polygon-button {
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.3s;
+  padding: 5px;
+  margin-left: 10px;
+}
+
+.clear-polygon-button:hover {
+  color: #ff4d4d;
+}
+
+/* Кнопка "Очистить историю" */
+.clear-history-button {
+  background-color: #a00;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+  /* margin-top: 550px; Удалено, так как это жесткое позиционирование */
+  margin-top: auto; /* Выравнивает кнопку к низу контейнера */
+  margin-bottom: 20px; /* Отступ от низа */
+  width: 90%;
+  max-width: 200px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.clear-history-button:hover {
+  background-color: #c00;
+}
+
+.clear-history-button:active {
+  transform: translateY(0);
+}
+
+.clear-history-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Кнопка "Новый полигон" (если она будет возвращена) */
+.create-polygon-button {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+  width: 90%;
+  max-width: 200px;
+  margin-top: 10px; /* Отступ между кнопками */
+  margin-bottom: 10px; /* Добавлен отступ снизу */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.create-polygon-button:hover {
+  background-color: #45a049;
+}
+
+.create-polygon-button:active {
+  transform: translateY(0);
+}
+
+
+/* Основное содержимое чата */
+.chat-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #1a1a1a;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Шапка чата (для мобильной версии) */
+.chat-header {
+  display: none; /* По умолчанию скрыто, будет отображаться на мобильных */
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  width: 100%; /* Добавлено, чтобы шапка занимала всю ширину */
+  box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+.chat-header-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  flex-grow: 1; /* Позволяет заголовку занимать место */
+  text-align: center;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  width: 40px;
+  height: 40px;
+  z-index: 10; /* Чтобы кнопка была поверх оверлея */
+}
+
+/* Контейнер сообщений */
+.messages-container {
+  flex-grow: 1;
+  padding: 45px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-bottom: 90px; /* Отступ для области ввода */
+}
+
+/* Сообщение */
+.message {
+  background-color: #2a2a2a;
+  padding: 12px 18px;
+  border-radius: 12px;
+  max-width: 80%;
+  word-wrap: break-word;
+  line-height: 1.6;
+  font-size: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.message.user {
+  align-self: flex-end;
+  background-color: #4CAF50;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.message.ai {
+  align-self: flex-start;
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+  border-bottom-left-radius: 4px;
+}
+
+/* Вступление к чату */
+.chat-intro {
+  text-align: center;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 20px;
+  color: #bbb;
+  position: absolute; /* Делаем его абсолютным для центрирования */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Ограничиваем ширину */
+  max-width: 600px;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Чтобы не мешать кликам */
+}
+
+.chat-intro.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chat-intro h2 {
+  font-size: 36px;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.chat-intro p {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.login-prompt {
+  font-size: 16px;
+  color: #ff9800;
+  margin-top: 15px;
+}
+
+/* Индикатор набора текста */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #aaa;
+  font-style: italic;
+  font-size: 14px;
+  margin-top: 10px;
+  align-self: flex-start;
+  padding: 0 20px;
+  /* Добавлены стили для плавающих точек */
+  background-color: #3a3a3a; /* Фон как у AI сообщения */
+  padding: 12px 18px;
+  border-radius: 12px;
+  max-width: 80%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #aaa;
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Область ввода сообщения */
+.input-area {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #121212;
+  gap: 12px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
+/* Инпут */
+.input-area input {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #1f1f1f;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-area input:focus {
+  background-color: #262626;
+  box-shadow: 0 0 0 2px #3f51b5;
+}
+
+/* Placeholder */
+.input-area input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Кнопка отправки */
+.send-button {
+  background-color: #3f51b5;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.send-button:hover {
+  background-color: #5c6bc0;
+  transform: scale(1.05);
+}
+
+.send-button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Модальное окно подтверждения */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #2a2a2a;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  color: #fff;
+  animation: scaleIn 0.3s ease-out;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  font-size: 24px;
+  color: #4CAF50;
+  margin-bottom: 20px;
+}
+
+.modal-content p {
+  font-size: 16px;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.modal-button.confirm-button {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.modal-button.confirm-button:hover {
+  background-color: #45a049;
+}
+
+.modal-button.cancel-button {
+  background-color: #666;
+  color: #fff;
+}
+
+.modal-button.cancel-button:hover {
+  background-color: #555;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Адаптация для мобильных устройств (экраны до 768px) */
+@media (max-width: 768px) {
+  .chat-container {
+    flex-direction: column; /* Чат занимает все доступное пространство */
+    position: relative; /* Для позиционирования оверлея */
+  }
+
+  /* Боковая панель по умолчанию скрыта на мобильных */
+  .chat-sidebar {
+    position: fixed; /* Фиксированное положение */
+    top: 0;
+    left: 0; /* Изначально за экраном, но потом сдвинется вправо */
+    width: 280px; /* Ширина выдвижной панели */
+    height: 100vh;
+    transform: translateX(-100%); /* Сдвигаем полностью влево, за пределы экрана */
+    transition: transform 0.4s ease; /* Анимация выдвижения */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5); /* Тень для эффекта выдвижения */
+    z-index: 100; /* Выше, чем чат-хедер и оверлей */
+  }
+
+  /* Показываем боковую панель, когда она активна */
+  .chat-sidebar.active {
+    transform: translateX(0); /* Сдвигаем на 0, делая видимой */
+  }
+
+  .chat-sidebar-resizer {
+    display: none; /* Скрываем ресайзер на мобильных */
+  }
+
+  /* Шапка чата для мобильных */
+  .chat-header {
+    display: flex; /* Показываем шапку на мобильных */
+    width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    top: 30px;
+    z-index: 5;
+    background-color: #1a1a1a; /* Фон шапки */
+  }
+
+  .chat-main {
+    border-left: none; /* Убираем границу */
+    padding-top: 0; /* Отступ убран, так как шапка вверху */
+    flex-grow: 1; /* Чтобы чат занимал оставшееся пространство */
+  }
+
+  .messages-container {
+    padding: 20px;
+    gap: 10px;
+    padding-bottom: 90px; /* Отступ для input-area */
+  }
+
+  .message {
+    max-width: 90%;
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .chat-intro {
+    width: 90%; /* Расширяем интро на мобильных */
+  }
+
+  .chat-intro h2 {
+    font-size: 28px;
+  }
+
+  .chat-intro p {
+    font-size: 16px;
+  }
+
+  .input-area {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .message-input {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .send-button {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+
+  /* Кнопки в сайдбаре на мобильных (уже были, просто убедимся) */
+  .polygon-buttons-container,
+  .main-sidebar-button,
+  .clear-history-button {
+      width: 100%; /* Занимают всю доступную ширину сайдбара */
+      max-width: none; /* Отменяем максимальную ширину */
+      margin-left: 0; /* Убираем лишние отступы */
+      margin-right: 0;
+  }
+
+  /* Специальный отступ для кнопки "Очистить историю" на мобильных */
+  .clear-history-button {
+      margin-top: 620px; /* Отступ для мобильных устройств */
+  }
+
+  /* Оверлей для затемнения фона при открытом сайдбаре */
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99; /* Ниже сайдбара, но выше чата */
+    display: none; /* Скрыто по умолчанию */
+    transition: opacity 0.4s ease; /* Плавное появление */
+    opacity: 0;
+  }
+
+  .overlay.active {
+    display: block; /* Показываем, когда сайдбар активен */
+    opacity: 1;
+  }
+}
+
+/* Адаптация для очень маленьких экранов (телефоны старых моделей, до 480px) */
+@media (max-width: 480px) {
+  .chat-intro h2 {
+    font-size: 24px;
+  }
+
+  .chat-intro p {
+    font-size: 14px;
+  }
+
+  .message {
+    font-size: 13px;
+  }
+
+  .message-input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}

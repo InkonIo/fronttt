@@ -1,0 +1,342 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #1a1a1a; /* Основной фон, который будет просвечивать */
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  /* Фон, взятый из MapSidebar, с эффектом "жидкого стекла" */
+  background: linear-gradient(145deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%) !important; /* Добавлен !important для принудительного применения */
+  backdrop-filter: blur(25px) saturate(150%); /* Умеренное размытие и насыщенность */
+  -webkit-backdrop-filter: blur(25px) saturate(150%); /* Для совместимости с Safari */
+  border-bottom: 1px solid rgba(51, 51, 51, 0.6); /* Темная граница снизу, как у сайдбара */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Мягкая тень */
+
+  font-family: 'Inter', sans-serif;
+  height: 30px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  position: relative;
+  z-index: 2;
+  /* Добавлено для выравнивания всех элементов слева */
+  flex-grow: 1; /* Позволяет занимать доступное пространство */
+  /* Удаляем justify-content: flex-start; так как теперь нам нужно разделять элементы */
+}
+
+.profile-header-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #FF8C42;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(255, 140, 66, 0.3);
+}
+
+.profile-header-nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: transparent;
+}
+
+.profile-header-nav-link {
+  color: rgba(255, 255, 255, 0.85); /* Цвет текста для темной темы */
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 13px;
+  padding: 0px 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.profile-header-nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #FF8C42, #FF6B1A);
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+
+.profile-header-nav-link:hover {
+  color: #FF8C42;
+}
+
+.profile-header-nav-link:hover::before,
+.profile-header-nav-link.active::before {
+  width: 100%;
+}
+
+.profile-header-nav-link.active {
+  color: #FF8C42;
+  text-shadow: 0 0 10px rgba(255, 140, 66, 0.4);
+}
+
+/* Удаляем .profile-header-right, так как его содержимое будет перемещено в .profile-header-left */
+.profile-header-right {
+  display: none; /* Скрываем, так как его содержимое переносится в .profile-header-left */
+}
+
+.profile-header-button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-header-button:hover {
+  color: #FF8C42;
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(255, 140, 66, 0.4));
+}
+
+/* Настройки */
+.settings-container {
+  position: relative;
+  margin-left: auto; /* Прижимает контейнер настроек к правому краю внутри flex-контейнера */
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0; /* Оставляем right: 0, чтобы выпадающее меню появлялось справа от иконки */
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 100;
+}
+
+.settings-dropdown.show {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-dropdown button {
+  padding: 10px 16px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+
+.settings-dropdown button:hover {
+  background: #f0f0f0;
+}
+
+/* Мобильная адаптация */
+/* Для экранов шириной до 1024px (например, большие планшеты в портретном режиме) */
+@media (max-width: 1024px) {
+  .profile-header {
+    padding: 10px 20px; /* Немного уменьшим отступы */
+    height: 50px; /* Уменьшим высоту шапки */
+  }
+
+  .profile-header-left {
+    gap: 15px; /* Уменьшим расстояние между элементами слева */
+  }
+
+  .profile-header-nav {
+    gap: 12px; /* Уменьшим расстояние между пунктами навигации */
+  }
+
+  .profile-header-nav-link {
+    font-size: 12px; /* Уменьшим размер шрифта навигационных ссылок */
+    padding: 4px 0; /* Уменьшим отступы для ссылок */
+  }
+
+  .profile-header-logo {
+    font-size: 18px; /* Немного уменьшим размер шрифта логотипа */
+  }
+
+  .profile-header-button {
+    font-size: 13px; /* Уменьшим размер шрифта кнопок */
+    width: 26px; /* Уменьшим ширину кнопок */
+    height: 26px; /* Уменьшим высоту кнопок */
+  }
+}
+
+/* Для экранов шириной до 768px (планшеты и мобильные) */
+@media (max-width: 768px) {
+  .profile-header {
+    padding: 8px 15px; /* Еще больше уменьшим отступы */
+    height: 38px; /* Еще больше уменьшим высоту шапки */
+  }
+
+  .profile-header-left {
+    gap: 10px; /* Еще больше уменьшим расстояние между элементами слева */
+  }
+
+  .profile-header-nav {
+    gap: 10px; /* Еще больше уменьшим расстояние между пунктами навигации */
+  }
+
+  .profile-header-nav-link {
+    font-size: 11px; /* Еще больше уменьшим размер шрифта навигационных ссылок */
+    padding: 3px 0; /* Еще больше уменьшим отступы для ссылок */
+  }
+
+  .profile-header-button {
+    font-size: 12px; /* Еще больше уменьшим размер шрифта кнопок */
+    width: 24px; /* Еще больше уменьшим ширину кнопок */
+    height: 24px; /* Еще больше уменьшим высоту кнопок */
+  }
+
+  .profile-header-logo {
+    font-size: 16px; /* Еще больше уменьшим размер шрифта логотипа */
+  }
+}
+
+/* Для экранов шириной до 640px (мобильные телефоны в ландшафтном режиме и небольшие планшеты) */
+@media (max-width: 640px) {
+  .profile-header {
+    flex-direction: row; /* Возвращаем в ряд, чтобы все было в одной строке */
+    align-items: center; /* Выравнивание по центру */
+    gap: 10px; /* Уменьшим расстояние между элементами */
+    height: auto; /* Высота автоматически подстраивается под содержимое */
+    padding: 10px 15px; /* Скорректируем отступы */
+    justify-content: space-between; /* Распределяем элементы по краям */
+  }
+
+  .profile-header-left {
+    width: auto; /* Автоматическая ширина */
+    flex-wrap: wrap; /* Разрешаем перенос элементов */
+    gap: 8px; /* Уменьшим расстояние */
+    /* Удаляем order и margin-left: auto, так как settings-container теперь внутри */
+  }
+
+  .profile-header-right {
+    display: none; /* Скрываем, так как его содержимое перенесено */
+  }
+
+  .profile-header-nav {
+    flex-wrap: wrap; /* Разрешаем перенос навигационных ссылок на новую строку */
+    gap: 6px; /* Уменьшим расстояние между перенесенными ссылками */
+    justify-content: flex-start; /* Выравниваем навигацию по левому краю */
+    order: unset; /* Сбрасываем порядок */
+    width: auto; /* Автоматическая ширина */
+  }
+
+  .profile-header-nav-link {
+    font-size: 10px; /* Наименьший размер шрифта для навигационных ссылок */
+    padding: 2px 0; /* Минимальные отступы */
+  }
+
+  .profile-header-logo {
+    font-size: 14px; /* Уменьшим размер шрифта логотипа для очень маленьких экранов */
+    order: unset; /* Сбрасываем порядок */
+  }
+
+  .profile-header-button {
+    font-size: 11px; /* Уменьшим размер шрифта кнопок */
+    width: 22px; /* Уменьшим ширину кнопок */
+    height: 22px; /* Уменьшим высоту кнопок */
+  }
+
+  .settings-container {
+    order: unset; /* Сбрасываем порядок */
+    margin-left: auto; /* Прижимаем к правому краю внутри left-контейнера */
+  }
+}
+
+/* Для экранов шириной до 480px (очень маленькие смартфоны) */
+@media (max-width: 480px) {
+  .profile-header {
+    padding: 8px 10px; /* Еще меньшие отступы */
+    gap: 8px; /* Уменьшим расстояние */
+  }
+
+  .profile-header-logo {
+    font-size: 13px; /* Самый маленький размер логотипа */
+  }
+
+  .profile-header-nav {
+    gap: 5px; /* Еще более тесное расстояние для навигационных ссылок */
+  }
+  .profile-header-nav-link {
+    font-size: 9px; /* Очень маленький размер шрифта для навигационных ссылок */
+  }
+  .profile-header-button {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+}
+
+/* Адаптация для светлой темы */
+@media (prefers-color-scheme: light) {
+  .profile-header {
+    /* Для светлой темы также используем темный градиент, чтобы сохранить консистентность */
+    background: linear-gradient(145deg, rgba(17, 17, 17, 0.9) 0%, rgba(10, 10, 10, 0.9) 100%) !important;
+    backdrop-filter: blur(25px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.6) !important; /* Темная граница */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+  .profile-header-nav-link {
+    color: rgba(255, 255, 255, 0.85); /* Цвет текста для темной темы */
+  }
+  .profile-header-nav-link:hover {
+    color: #FF8C42; /* Акцентный цвет остается */
+  }
+  .profile-header-nav-link.active {
+    color: #FF8C42;
+    text-shadow: 0 0 10px rgba(255, 140, 66, 0.4);
+  }
+  .profile-header-button {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+
+/* Анимация */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

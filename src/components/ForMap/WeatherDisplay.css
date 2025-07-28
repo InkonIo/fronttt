@@ -1,0 +1,416 @@
+/* components/ForMap/WeatherDisplay.css */
+
+.weather-widget-container {
+  position: absolute;
+  bottom: 35px; /* Отступ снизу (чтобы не перекрывать блок загрузки анализа) */
+  right: 290px; /* Отступ справа */
+  background-color: rgba(26, 26, 26, 0.9); /* Темный фон с прозрачностью */
+  color: #f0f0f0; /* Светлый текст */
+  padding: 15px;
+  border-radius: 10px; /* Скругленные углы */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Тень */
+  z-index: 999; /* Поверх других элементов карты */
+  min-width: 240px; /* Минимальная ширина для настольных ПК */
+  max-width: 365px; /* Максимальная ширина для настольных ПК */
+  font-family: 'Inter', sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Тонкая светлая рамка */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Анимация появления/исчезновения */
+}
+
+.weather-error-state {
+  background-color: rgba(255, 0, 0, 0.7); /* Красный фон для ошибок */
+}
+
+.weather-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.weather-title {
+  margin: 0;
+  font-size: 18px;
+  color: #4CAF50; /* Зеленый цвет для заголовка */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-icon-large {
+  font-size: 24px;
+}
+
+.weather-date {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.weather-temp-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Styles for emoji icons */
+.weather-main-emoji {
+  font-size: 60px; /* Emoji size for main weather */
+  line-height: 1;
+}
+
+.weather-description-feels-like {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  flex-basis: 50%; /* Give this block more space */
+}
+
+.weather-description {
+  font-size: 14px; /* Reduce font size */
+  margin: 0 0 5px 0;
+  color: #f0f0f0;
+  word-break: break-word; /* Word wrap */
+  overflow-wrap: break-word; /* Wrap long words */
+}
+
+.weather-feels-like {
+  font-size: 13px; /* Reduce font size */
+  color: #aaa;
+  margin: 0;
+}
+
+.weather-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.weather-detail-item {
+  background-color: rgba(51, 51, 51, 0.7); /* #333 with transparency */
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.weather-detail-icon {
+  font-size: 20px; /* Icon size */
+  color: #4CAF50; /* Green color for detail icons */
+}
+
+.weather-detail-value {
+  margin: 0;
+  font-weight: bold;
+}
+
+.weather-detail-label {
+  margin: 0;
+  font-size: 12px;
+  color: #ccc;
+}
+
+/* Day navigation */
+.weather-daily-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weather-nav-button {
+  background-color: rgba(51, 51, 51, 0.7);
+  color: #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 50%; /* Round buttons */
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  width: 40px; /* Fixed size */
+  height: 40px; /* Fixed size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Do not shrink buttons */
+}
+
+.weather-nav-button:hover {
+  background-color: rgba(70, 70, 70, 0.8);
+}
+
+.weather-nav-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.weather-daily-card {
+  flex-shrink: 0;
+  width: 65%; /* Card takes up all available width between buttons */
+  background-color: rgba(51, 51, 51, 0.7);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  /* Animations */
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Animations for day cards */
+.slide-in-left {
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInLeft 0.3s forwards;
+}
+
+.slide-out-left {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideOutLeft 0.3s forwards;
+}
+
+.slide-in-right {
+  opacity: 0;
+  transform: translateX(20px);
+  animation: slideInRight 0.3s forwards;
+}
+
+.slide-out-right {
+  opacity: 1;
+  transform: translateX(0);
+  animation: slideOutRight 0.3s forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+.weather-daily-card-date {
+  font-size: 12px;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+/* Styles for emoji icons in daily cards */
+.weather-daily-card-emoji {
+  font-size: 40px; /* Emoji size for daily cards */
+  line-height: 1;
+  object-fit: contain; /* Preserve, though not as critical for emojis */
+}
+
+.weather-daily-card-temp {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.weather-daily-card-conditions {
+  font-size: 11px;
+  color: #aaa;
+  margin: 0;
+}
+
+/* Styles for the widget visibility toggle button */
+.toggle-weather-button {
+  position: absolute;
+  /* Default positioning for desktop */
+  top: 10px;
+  left: 10px; /* Changed from right to left for better positioning on desktop */
+
+  background-color: rgba(51, 51, 51, 0.7);
+  color: #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 24px; /* Icon size */
+  width: 45px; /* Fixed size */
+  height: 45px; /* Fixed size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it's above the widget */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.toggle-weather-button:hover {
+  background-color: rgba(70, 70, 70, 0.8);
+  transform: scale(1.05);
+}
+
+/* Styles for the icon inside the toggle button */
+.weather-toggle-icon {
+  font-size: 24px; /* Emoji size inside the button */
+  line-height: 1;
+}
+
+/* Adaptation for mobile devices */
+@media (max-width: 768px) {
+  .weather-widget-container {
+    padding: 5px; /* Reduce internal padding */
+    min-width: 120px; /* Reduce minimum width */
+    max-width: 100%; /* Set maximum width for mobile */
+    right: 5px; /* Shift closer to the edge on mobile */
+    bottom: 40px; /* Shift closer to the bottom edge on mobile */
+    gap: 10px; /* Reduce spacing between elements */
+  }
+
+  .weather-header {
+    margin-bottom: 5px; /* Reduce margin */
+    padding-bottom: 5px; /* Reduce padding */
+  }
+
+  .weather-title {
+    font-size: 14px; /* Reduce header size */
+    gap: 5px; /* Reduce spacing */
+  }
+
+  .weather-icon-large {
+    font-size: 20px; /* Reduce header icon size */
+  }
+
+  .weather-date {
+    font-size: 11px; /* Reduce date size */
+  }
+
+  .weather-main {
+    margin-bottom: 10px; /* Reduce margin */
+  }
+
+  .weather-main-emoji {
+    font-size: 40px; /* Reduce main weather icon size */
+  }
+
+  .weather-description {
+    font-size: 11px; /* Reduce description size */
+  }
+
+  .weather-feels-like {
+    font-size: 10px; /* Reduce "feels like" size */
+  }
+
+  .weather-details-grid {
+    gap: 5px; /* Reduce spacing in detail grid */
+  }
+
+  .weather-detail-item {
+    padding: 8px; /* Reduce detail padding */
+    gap: 5px; /* Reduce spacing */
+    font-size: 12px; /* Reduce detail font size */
+  }
+
+  .weather-detail-icon {
+    font-size: 16px; /* Reduce detail icon size */
+  }
+
+  .weather-detail-value {
+    font-size: 12px; /* Reduce detail value size */
+  }
+
+  .weather-detail-label {
+    font-size: 10px; /* Reduce detail label size */
+  }
+
+  .weather-nav-button {
+    padding: 6px 10px; /* Reduce navigation button padding */
+    width: 30px; /* Reduce navigation button size */
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .weather-daily-card {
+    padding: 8px; /* Reduce daily card padding */
+  }
+
+  .weather-daily-card-date {
+    font-size: 10px; /* Reduce date size in card */
+  }
+
+  .weather-daily-card-emoji {
+    font-size: 30px; /* Reduce emoji size in card */
+  }
+
+  .weather-daily-card-temp {
+    font-size: 14px; /* Reduce temperature size in card */
+  }
+
+  .weather-daily-card-conditions {
+    font-size: 9px; /* Reduce conditions size in card */
+  }
+
+  /* Mobile-specific positioning for the toggle button */
+  .toggle-weather-button {
+    top: 5px; /* Adjust top position for mobile */
+    left: 5px; /* Adjust left position for mobile */
+    padding: 6px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+
+  .weather-toggle-icon {
+    font-size: 20px;
+  }
+}

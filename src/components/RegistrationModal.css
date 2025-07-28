@@ -1,0 +1,356 @@
+/* Modern Registration Modal Styles */
+.registration-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://avatars.mds.yandex.net/i?id=248dab1692be8e15154e6e67d8b15b4f_l-5232352-images-thumbs&ref=rim&n=13&w=1470&h=827');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Затемняющий оверлей */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Анимированные частицы */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: float 15s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.forgot-password {
+  color: #fff;
+}
+
+/* Основной контейнер */
+.registration-wrapper {
+  position: relative;
+  z-index: 1001;
+}
+
+.registration-content {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 40px;
+  border-radius: 20px;
+  width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+/* Табы SIGN IN / SIGN UP */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15px 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+  position: relative;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+}
+
+.auth-tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-tab.active {
+  color: #ff8c42;
+}
+
+.auth-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ff8c42, #ff6b1a);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0;
+    margin: 0 auto;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Форма */
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Группы инпутов */
+.input-group {
+  position: relative;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 15px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: left; /* Выравнивание текста-заполнителя по левому краю */
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 300;
+  text-align: left; /* Выравнивание текста-заполнителя по левому краю */
+}
+
+.input-group input:focus {
+  border-bottom-color: white;
+  box-shadow: none;
+  outline: none;
+}
+
+.input-group input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Кастомный чекбокс */
+.checkbox-label {
+  display: flex;
+  align-items: flex-start; /* Изменено: выравнивание по верхнему краю для многострочного текста */
+  font-size: 0.9em; /* Немного уменьшим размер шрифта для компактности */
+  line-height: 1.3; /* Увеличим межстрочный интервал */
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none; /* Скрываем оригинальный чекбокс */
+}
+
+.checkbox-label .checkmark {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  margin-right: 10px;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  flex-shrink: 0; /* Чтобы чекбокс не сжимался */
+  margin-top: 2px; /* Небольшой отступ сверху для выравнивания с текстом */
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background-color: #ff8c42;
+  border-color: #ff8c42;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Стили для кнопок submit и cancel */
+.submit-btn,
+.cancel-btn {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #ff8c42e3;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  transition: border-color 0.25s, background-color 0.3s, color 0.3s;
+  width: 100%; /* Убедимся, что кнопки занимают всю ширину */
+  box-sizing: border-box; /* Учитываем padding в ширине */
+}
+
+.submit-btn:hover {
+  background-color: #ff6b1a;
+  border-color: #ff6b1a;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  margin-top: 10px;
+}
+
+.cancel-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.submit-btn:focus,
+.submit-btn:focus-visible,
+.cancel-btn:focus,
+.cancel-btn:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+.error {
+  color: #ff6b1a;
+  font-size: 13px;
+  margin-top: -10px;
+  text-align: center;
+}
+
+/* ========================================= */
+/* АДАПТИВНЫЙ ДИЗАЙН                         */
+/* ========================================= */
+
+/* Для экранов шириной до 768px (планшеты и мобильные) */
+@media (max-width: 768px) {
+  .registration-content {
+    padding: 20px; /* Немного уменьшим отступы */
+    width: 90vw; /* Увеличим ширину, чтобы занять больше места */
+    max-width: 300px; /* Установим более строгий максимальный предел */
+  }
+
+  .auth-tabs {
+    flex-direction: column;
+    margin-bottom: 20px; /* Уменьшим отступ */
+  }
+
+  .auth-tab {
+    padding: 10px 0; /* Меньшие отступы для каждого таба */
+    font-size: 13px; /* Чуть меньше шрифт */
+  }
+
+  .registration-form {
+    gap: 15px; /* Уменьшим расстояние между полями формы */
+  }
+
+  .input-group input {
+    font-size: 14px; /* Меньший шрифт для полей ввода */
+    padding: 12px 0; /* Меньшие отступы в полях ввода */
+  }
+
+  .submit-btn,
+  .cancel-btn {
+    padding: 12px 18px; /* Меньшие отступы для кнопок */
+    font-size: 14px; /* Меньший шрифт для кнопок */
+  }
+
+  .checkbox-label {
+    font-size: 13px; /* Меньший шрифт для текста чекбокса */
+  }
+
+  .forgot-password {
+    font-size: 13px; /* Меньший шрифт для "Забыли пароль?" */
+  }
+
+  .particle {
+    display: none;
+  }
+}
+
+/* Для экранов шириной до 480px (очень маленькие смартфоны) */
+@media (max-width: 480px) {
+  .registration-content {
+    padding: 15px; /* Еще меньше отступы */
+    width: 95vw; /* Занимает почти всю ширину экрана */
+    max-width: 280px; /* Еще более строгий максимальный предел */
+  }
+  .forgot-password {
+    text-align: center;
+    margin-top: 5px;
+  }
+  .auth-tabs {
+    margin-bottom: 15px;
+  }
+  .submit-btn, .cancel-btn {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+  .input-group input {
+    font-size: 13px; /* Еще меньше шрифт для инпутов */
+    padding: 10px 0; /* Еще меньше отступы */
+  }
+  .error {
+    font-size: 12px;
+    margin-top: -8px;
+  }
+}
+/* Дополнительные стили для checkbox текстов и выравнивания */
+.checkbox-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9em;
+  line-height: 1.4;
+  text-align: left;
+  word-break: break-word;
+}
+
+.checkbox-text a {
+  color: #ff8c42;
+  text-decoration: underline;
+}
+
+/* Улучшенное выравнивание инпутов */
+.input-group input {
+  padding: 15px 0;
+  padding-left: 0; /* добавлено: убрать смещение вправо */
+  text-align: left;
+  box-sizing: border-box;
+}

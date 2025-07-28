@@ -1,0 +1,53 @@
+/* components/ForMap/Map.css */
+
+/* Основные стили для контейнера карты Leaflet */
+.leaflet-container {
+  border-radius: 8px; /* Скругленные углы для карты */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Красивая тень для выделения карты */
+  overflow: hidden; /* Обрезает содержимое, чтобы скругленные углы работали */
+  background-color: #e0e0e0; /* Фоновый цвет для карты, если тайлы не загрузились */
+  width: 100%; /* Карта занимает всю доступную ширину */
+  height: 100%; /* Карта занимает всю доступную высоту */
+}
+
+/* Стили для кнопок контроля Leaflet-Draw (можно настроить по желанию) */
+.leaflet-draw-toolbar a {
+  border-radius: 4px !important; /* Скругленные углы для кнопок инструментов */
+}
+
+.leaflet-draw-toolbar a.leaflet-draw-edit-enabled,
+.leaflet-draw-toolbar a.leaflet-draw-create-enabled {
+  background-color: #007bff; /* Цвет фона для активных кнопок */
+  color: white; /* Цвет текста для активных кнопок */
+}
+
+/* Стили для информационного блока при рисовании */
+.drawing-info-box {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  background-color: rgba(0,0,0,0.85);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  max-width: 320px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.drawing-info-box h2 {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #4CAF50; /* Зеленый цвет для заголовка */
+}
+
+.drawing-info-box div {
+  line-height: 1.4;
+}
+
+/* Скрываем контейнеры управления в правом верхнем и левом верхнем углах */
+.leaflet-control-container .leaflet-top.leaflet-right,
+.leaflet-control-container .leaflet-top.leaflet-left {
+  display: none !important; /* Убираем эти блоки полностью */
+}
